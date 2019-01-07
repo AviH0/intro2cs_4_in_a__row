@@ -1,5 +1,5 @@
 import math as Math
-
+import numpy as np
 
 class Matrix3D:
     
@@ -272,9 +272,23 @@ class Matrix3D:
         self.mat=temp.mat
 
     def mullAllPoints(self, xr,  yr,  zr, aNum):
-    
+        #
+        # cr = [0 for i in range(aNum)]
+        # # points = [xr, yr, zr, cr]
+        # # mat = self.mat
+        # # points = np.matmul(mat, points)
+        # # xr, yr, zr, cr = points
+        # points = np.array([xr, yr, zr, cr])
+        # mat = np.array(self.mat)
+        # points = np.dot(self.mat, points)
+        # xr, yr, zr, cr = points
+        # return xr, yr, zr
+
+
         for  i in range(aNum):
             xTemp=xr[i]; yTemp= yr[i]; zTemp=zr[i]
             xr[i]=xTemp * self.mat[0][0] + yTemp * self.mat[1][0] + zTemp * self.mat[2][0] + 1 * self.mat[3][0]
             yr[i]=xTemp * self.mat[0][1] + yTemp * self.mat[1][1] + zTemp * self.mat[2][1] + 1 * self.mat[3][1]
             zr[i]=xTemp * self.mat[0][2] + yTemp * self.mat[1][2] + zTemp * self.mat[2][2] + 1 * self.mat[3][2]
+            # xr[i], yr[i], zr[i], x = np.matmul(np.transpose((xr[i], yr[i], zr[i], 0)), self.mat)
+
