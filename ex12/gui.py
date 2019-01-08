@@ -1,5 +1,6 @@
 import tkinter as tk
 from game import Game
+from .graphics import Graphics
 
 
 class Gui:
@@ -16,6 +17,8 @@ class Gui:
         self.__start_image = tk.PhotoImage(file='ex12/images/start.png')
         self.__p_v_p = tk.PhotoImage(file='ex12/images/PvP.png')
         self.__p_v_pc = tk.PhotoImage(file='ex12/images/PvPC.png')
+        self.__pvp_selected = tk.PhotoImage(file='ex12/images/PvP-selected.png')
+        self.__pvpc_selected = tk.PhotoImage(file='ex12/images/PvPC-selected.png')
 
 
     def __welcome(self):
@@ -37,14 +40,26 @@ class Gui:
         options = tk.Frame(self.__root)
 
         p_v_p_button = tk.Button(options, image=self.__p_v_p,
-                                 command=lambda: self.__start_game(mode='PvP'),
+                                 command=lambda: self.__start_game(p_v_p_button, mode='PvP'),
                                  relief='flat')
         p_v_pc_button = tk.Button(options, image=self.__p_v_pc,
                                   command=lambda: self.__start_game(
-                                      mode='PvP'), relief='flat')
+                                      p_v_pc_button, mode='PvPC' ), relief='flat')
         p_v_p_button.pack()
         p_v_pc_button.pack()
         options.pack()
 
-    def __start_game(self, mode):
+    def __start_game(self, button, mode):
+        if mode == 'PvP':
+            button.config(image=self.__pvp_selected)
+        else:
+            button.config(image=self.__pvpc_selected)
+
+        slaves = self.__root.pack_slaves()
+        for slave in slaves:
+            slave.destroy()
         game = Game()
+
+        canvas = tk.Canvas(self.__root)
+        graphics = Graphics(canvas)
+        canvas.pack()
