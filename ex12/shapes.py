@@ -1,6 +1,7 @@
 import numpy as np
 from .matrix_3D import Point3D, Matrix3D
-import random
+import tkinter
+import time
 
 
 class Shapes:
@@ -19,13 +20,15 @@ class Shapes:
         self.y_real = []  # [0 for i in range(num_vertices * 2)]
         self.z_real = []  # [0 for i in range(num_vertices * 2)]
 
+        self.__guf_order = []
         self.x_guf = []  # [[0 for i in range(num_vertices)] for j in
         # range(num_facets)]
         self.y_guf = []  # [[0 for i in range(num_vertices)] for j in
         # range(num_facets)]
         self.z_guf = []  # [[0 for i in range(num_vertices)] for j in
         # range(num_facets)]
-        self.normals = []
+        self.__colors = []
+        self.__shades = []
         self.__disp = []
 
         self.__vertices = []
@@ -41,6 +44,7 @@ class Shapes:
             self.x_real.append(float(xv) + x)
             self.y_real.append(float(yv) + y)
             self.z_real.append(float(zv) + z)
+        self.__guf_order = [i for i in range(len(self.__faces))]
         self.real_to_guf()
         # self.__build_normals()
 
@@ -50,6 +54,9 @@ class Shapes:
         self.x_guf = []
         self.y_guf = []
         self.z_guf = []
+        self.__colors = []
+        self.__shades = []
+        red, green, blue = self.__color
         for face in self.__faces:
             a, b, c = face.split(' ')
             a = int(a)
@@ -64,36 +71,38 @@ class Shapes:
 
             n = np.cross(x, y)
             n = n / np.linalg.norm(n)
-            x.append(n[0])
-            y.append(n[1])
-            z.append(n[2])
+            shade = abs(np.dot((n[0], n[1], n[2]), self.light_source))
+            AMBIENT = 0.80
+            self.__shades.append(shade)
+            self.__colors.append(
+                "#%04x%04x%04x" % (int(red - 0.15 * shade * red),
+                                   int(green - 0.15 * shade * green),
+                                   int(blue - 0.15 * shade * blue)))
             self.x_guf.append(x)
             self.y_guf.append(y)
             self.z_guf.append(z)
+        self.__guf_order.sort(key=lambda value: min(self.z_guf[value]),
+                              reverse=True)
+        self.__disp = []
+        for i in range(len(self.__faces)):
+            self.__convert(self.x_guf[self.__guf_order[i]],
+                           self.y_guf[self.__guf_order[i]],
+                           self.z_guf[self.__guf_order[i]])
         self.__needs_update = False
 
+    # self.guf_order = [i for i in range(self.__num_faces)]
 
-        # self.guf_order = [i for i in range(self.__num_faces)]
-
-    # def __build_normals(self):
-    #     for i in range(len(self.__faces)):
-    #         a, b, c = self.x_guf[i], self.y_guf[i], self.z_guf[i]
-    #         n = np.cross([a[0], b[0], c[0]], [a[1], b[1], c[1]])
-    #         n = n / np.linalg.norm(n)
-    #         self.x_real.append(n[0])
-    #         self.y_real.append(n[1])
-    #         self.z_real.append(n[2])
-
-    def __check(self, x1, y1, x2, y2, x3, y3):
-        return x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2) > 0
+    # def __check(self, x1, y1, x2, y2, x3, y3):
+    #     return x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2) > 0
 
     def __convert(self, x, y, z):
-        self.__disp = []
         if self.__magoz:
+            lst = []
             for i in range(3):
                 d = self.__magoz[2] / (self.__magoz[2] + z[i])
-                self.__disp.append(
-                    (x[i] * d + self.__magoz[0], y[i] * d + self.__magoz[1]))
+                lst.append(
+                    [x[i] * d + self.__magoz[0], y[i] * d + self.__magoz[1]])
+            self.__disp.append(lst)
         else:
             for i in range(3):
                 self.__disp.append((x[i], y[i]))
@@ -150,32 +159,27 @@ class Shapes:
         return Point3D(x, y, z)
 
     def convert_and_show(self, canvas):
+        start = time.time()
         tag = self.__id
         canvas.delete(tag)
-        guf_order = [i for i in range(len(self.__faces))]
-        guf_order.sort(key=lambda value: min(self.z_guf[value][:-1]),
-                       reverse=True)
-        r, g, b = canvas.winfo_rgb(self.__color)
+
+        r, g, b = self.__color
         for i in range(len(self.__faces)):
-            self.__convert(self.x_guf[guf_order[i]],
-                           self.y_guf[guf_order[i]],
-                           self.z_guf[guf_order[i]])
+            # self.__convert(self.x_guf[self.__guf_order[i]],
+            #                self.y_guf[self.__guf_order[i]],
+            #                self.z_guf[self.__guf_order[i]])
             # TODO: Tidy
             if True:  # self.z_guf[guf_order[i]][3] > 0:
-                shade = abs(np.dot((self.x_guf[guf_order[i]][3],
-                                    self.y_guf[guf_order[i]][3],
-                                    self.z_guf[guf_order[i]][3],),
-                                   self.light_source))
-                AMBIENT = 0.85
-                rx = int((r - r * AMBIENT) * shade + r * AMBIENT)
-                gx = int((g - g * AMBIENT) * shade + g * AMBIENT)
-                bx = int((b - b * AMBIENT) * shade + b * AMBIENT)
+
+                shade = self.__shades[i]
                 if 0 <= shade <= 1:
-                    color = "#%04x%04x%04x" % (rx, gx, bx)
-                    canvas.create_polygon(self.__disp, fill=color, tag=tag)
+                    color = self.__colors[self.__guf_order[i]]
+                    canvas.create_polygon(self.__disp[self.__guf_order[i]],
+                                          fill=color, tag=tag)
+        end = time.time()
+        print(self.__id, 'Time:', end - start)
 
     def mull_points(self, mat):
-
         if mat.is_identity():
             return
         self.x_real, self.y_real, self.z_real = mat.mullAllPoints(self.x_real,

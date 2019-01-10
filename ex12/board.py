@@ -4,11 +4,11 @@ import random
 
 
 class Board:
-    def __init__(self, magoz, light_source):
-        self.side_a = Shapes(magoz, light_source, 'ex12/SideA.obj', "navy",
-                             'item4')
-        self.side_b = Shapes(magoz, light_source, 'ex12/SideB.obj', "navy",
-                             'item5')
+    def __init__(self, magoz, light_source, color):
+        self.side_a = Shapes(magoz, light_source, 'ex12/SideA.obj', color,
+                             'boardA')
+        self.side_b = Shapes(magoz, light_source, 'ex12/SideB.obj', color,
+                             'boardB')
 
     def build_shape(self, x, y, z):
         self.side_a.build_shape(x, y, z)
@@ -23,11 +23,13 @@ class Board:
         self.side_b.mull_points(mat)
 
     def convert_and_show_back(self, canvas):
-        back = max(self.side_a, self.side_b, key=lambda value: value.get_big_z())
+        back = max(self.side_a, self.side_b,
+                   key=lambda value: value.get_big_z())
         back.convert_and_show(canvas)
 
     def convert_and_show_front(self, canvas):
-        front = min(self.side_a, self.side_b, key=lambda value: value.get_big_z())
+        front = min(self.side_a, self.side_b,
+                    key=lambda value: value.get_big_z())
         front.convert_and_show(canvas)
 
     def get_big_x(self, x=None):
