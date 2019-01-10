@@ -1,15 +1,18 @@
 import numpy as np
-from .matrix_3D import Point3D
+from .matrix_3D import Point3D, Matrix3D
+import random
 
 
 class Shapes:
-    def __init__(self, magoz, light_source, filename, color):
+    def __init__(self, magoz, light_source, filename, color, id):
         self.__magoz = magoz
         self.light_source = light_source
         self.__color = color
         self.light_source = self.light_source / np.linalg.norm(
             self.light_source)
         self.filename = filename
+        self.__needs_update = True
+        self.__id = id
         self.__num_vertices = 0
         self.__num_faces = 0
         self.x_real = []  # [0 for i in range(num_vertices * 2)]
@@ -42,6 +45,8 @@ class Shapes:
         # self.__build_normals()
 
     def real_to_guf(self):
+        if not self.__needs_update:
+            return
         self.x_guf = []
         self.y_guf = []
         self.z_guf = []
@@ -65,6 +70,8 @@ class Shapes:
             self.x_guf.append(x)
             self.y_guf.append(y)
             self.z_guf.append(z)
+        self.__needs_update = False
+
 
         # self.guf_order = [i for i in range(self.__num_faces)]
 
@@ -143,38 +150,42 @@ class Shapes:
         return Point3D(x, y, z)
 
     def convert_and_show(self, canvas):
-
-        canvas.delete(self.filename)
+        tag = self.__id
+        canvas.delete(tag)
         guf_order = [i for i in range(len(self.__faces))]
-        guf_order.sort(key=lambda value: min(self.z_guf[value][:-1]), reverse=True)
+        guf_order.sort(key=lambda value: min(self.z_guf[value][:-1]),
+                       reverse=True)
         r, g, b = canvas.winfo_rgb(self.__color)
         for i in range(len(self.__faces)):
             self.__convert(self.x_guf[guf_order[i]],
                            self.y_guf[guf_order[i]],
                            self.z_guf[guf_order[i]])
+            # TODO: Tidy
             if True:  # self.z_guf[guf_order[i]][3] > 0:
                 shade = abs(np.dot((self.x_guf[guf_order[i]][3],
-                                self.y_guf[guf_order[i]][3],
-                                self.z_guf[guf_order[i]][3],),
-                               self.light_source))
+                                    self.y_guf[guf_order[i]][3],
+                                    self.z_guf[guf_order[i]][3],),
+                                   self.light_source))
                 AMBIENT = 0.85
                 rx = int((r - r * AMBIENT) * shade + r * AMBIENT)
                 gx = int((g - g * AMBIENT) * shade + g * AMBIENT)
                 bx = int((b - b * AMBIENT) * shade + b * AMBIENT)
                 if 0 <= shade <= 1:
                     color = "#%04x%04x%04x" % (rx, gx, bx)
-                    # color = "#%02x%02x%02x" % (0, 249, 249)
-                    canvas.create_polygon(self.__disp, fill=color,
-                                          tags=self.filename)
+                    canvas.create_polygon(self.__disp, fill=color, tag=tag)
 
     def mull_points(self, mat):
 
+        if mat.is_identity():
+            return
         self.x_real, self.y_real, self.z_real = mat.mullAllPoints(self.x_real,
                                                                   self.y_real,
                                                                   self.z_real,
                                                                   self.__num_vertices)
-        # normals = mat.mullAllPoints(*np.transpose(self.normals), len(self.__faces))
-        # self.normals = np.transpose(normals)
+        self.__needs_update = True
+
+    def set_color(self, color):
+        self.__color = color
 
     def compare_to(self, shape):
         if self.get_big_z() > shape.get_big_z():

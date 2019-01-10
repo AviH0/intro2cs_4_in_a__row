@@ -9,6 +9,11 @@ class Matrix3D:
         self.mat = [[0 for i in range(self.SIZE)] for j in range(self.SIZE)]
         self.setIdentity()
 
+    def is_identity(self):
+        identity = Matrix3D()
+        identity.setIdentity()
+        return self.mat == identity.mat
+
     def setIdentity(self):
 
         self.mat[0][0] = 1.0
@@ -295,9 +300,9 @@ class Point3D:
     def mull_point(self, mat):
         self.x, self.y, self.z = mat.mullAllPoints([self.x], [self.y],
                                                    [self.z], 1)
-        self.x = int(self.x)
-        self.y = int(self.y)
-        self.z = int(self.z)
+        self.x = float(self.x)
+        self.y = float(self.y)
+        self.z = float(self.z)
 
     def get_points(self):
         return self.x, self.y, self.z
