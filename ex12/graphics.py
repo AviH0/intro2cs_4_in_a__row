@@ -37,7 +37,7 @@ class Graphics:
                              black, 'text')
         self.__board = Board(self.magoz, self.light_source, navy)
         self.__player = Shapes(self.magoz, self.light_source,
-                               'ex12/player.obj', self.__player_1_color,
+                               'ex12/player.obj', navy,
                                'player')
         self.__player_1 = Shapes(self.magoz, self.light_source,
                                  'ex12/number_1.obj', self.__player_1_color,
@@ -96,7 +96,12 @@ class Graphics:
                                     self.__board_top.z - 25)
 
         self.__create_coins_and_column_pointers()
+
+        self.__time = 0
+        self.__canvas.create_text(110, 50, text='TIME:', fill='black', font="Helvetica 30 bold", tags='time')
+
         self.prepare_and_draw_all()
+        self.__update_clock()
 
     def prepare_and_draw_all(self):
         self.__text.mull_points(self.__cur_state)
@@ -154,7 +159,7 @@ class Graphics:
             self.__players[self.__current_player].convert_and_show(
                 self.__canvas)
             self.table.convert_and_show(self.__canvas)
-        self.__canvas.update_idletasks()
+
 
     def play_coin(self, column):
         color = self.__player_colors[self.__current_player]
@@ -214,6 +219,13 @@ class Graphics:
                 new_coin.build_shape(self.__board_top.x - 170 + 56 * i,
                                      self.__board_top.y,
                                      self.__board.get_middle().z)
+
+    def __update_clock(self):
+        self.__time += 0.1
+        self.__canvas.tag_raise('time')
+        self.__canvas.itemconfig('time', text='TIME: ' + str(int(self.__time // 3600)) + ':' + str(int(self.__time // 60)) + ':' + str(int(self.__time % 60)))
+        self.__canvas.update_idletasks()
+        self.__canvas.master.after(100, self.__update_clock)
 
     def __key_pressed(self, event):
 
