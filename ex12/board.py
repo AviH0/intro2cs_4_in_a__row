@@ -1,6 +1,5 @@
 from .shapes import Shapes
 from .matrix_3D import Point3D
-import random
 
 
 class Board:

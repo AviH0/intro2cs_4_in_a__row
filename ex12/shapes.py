@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from .matrix_3D import Point3D, Matrix3D
 import tkinter
@@ -69,20 +71,21 @@ class Shapes:
             z = [self.z_real[a - 1], self.z_real[b - 1],
                  self.z_real[c - 1]]
 
-            n = np.cross(x, y)
-            n = n / np.linalg.norm(n)
-            shade = abs(np.dot((n[0], n[1], n[2]), self.light_source))
-            AMBIENT = 0.80
-            self.__shades.append(shade)
-            self.__colors.append(
-                "#%04x%04x%04x" % (int(red - 0.15 * shade * red),
-                                   int(green - 0.15 * shade * green),
-                                   int(blue - 0.15 * shade * blue)))
             self.x_guf.append(x)
             self.y_guf.append(y)
             self.z_guf.append(z)
-        self.__guf_order.sort(key=lambda value: min(self.z_guf[value]),
-                              reverse=True)
+
+            n = np.cross(x, y)
+            n = n / np.linalg.norm(n)
+            shade = -np.dot((n[0], n[1], n[2]), self.light_source)
+            LIGHT_SOURCE_STRENGTH = 0.2
+            self.__shades.append(shade)
+            self.__colors.append(
+                "#%04x%04x%04x" % (int(red - abs(0.05 * shade * red)),
+                                   int(green - abs(0.05 * shade * green)),
+                                   int(blue - abs(0.05 * shade * blue))))
+
+        self.__guf_order.sort(key=lambda value: min(self.z_guf[value]), reverse=True)
         self.__disp = []
         for i in range(len(self.__faces)):
             self.__convert(self.x_guf[self.__guf_order[i]],
@@ -169,13 +172,11 @@ class Shapes:
             #                self.y_guf[self.__guf_order[i]],
             #                self.z_guf[self.__guf_order[i]])
             # TODO: Tidy
-            if True:  # self.z_guf[guf_order[i]][3] > 0:
-
-                shade = self.__shades[i]
-                if 0 <= shade <= 1:
-                    color = self.__colors[self.__guf_order[i]]
-                    canvas.create_polygon(self.__disp[self.__guf_order[i]],
-                                          fill=color, tag=tag)
+            shade = self.__shades[i]
+            if -math.pi/2 <= shade <= math.pi/2:
+                color = self.__colors[self.__guf_order[i]]
+                canvas.create_polygon(self.__disp[self.__guf_order[i]],
+                                      fill=color, tag=tag)
         end = time.time()
         print(self.__id, 'Time:', end - start)
 
@@ -190,10 +191,3 @@ class Shapes:
 
     def set_color(self, color):
         self.__color = color
-
-    def compare_to(self, shape):
-        if self.get_big_z() > shape.get_big_z():
-            return -1
-        if self.get_big_z() < shape.get_big_z():
-            return 1
-        return 0

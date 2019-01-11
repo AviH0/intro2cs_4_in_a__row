@@ -1,6 +1,7 @@
 from .matrix_3D import Matrix3D, Point3D
 from .board import Board
 from .shapes import Shapes
+from .table import Table
 import random
 import math
 import copy
@@ -12,25 +13,27 @@ class Graphics:
         self.__canvas.configure(height=900, width=900, bg='grey')
         self.__canvas.master.bind('<Key>', self.__key_pressed)
 
-        self.magoz = (900 / 2, 900 / 3, 700)
-        self.light_source = (500, 0, -500)
+        self.magoz = (900 / 2, 900 / 3, 5000)
+        self.light_source = (500, 500, 4900)
+        room_light_source = (500, 0, 5000)
+        self.__center_location = Point3D(0, 0, 5000)
 
-        orange = self.__canvas.winfo_rgb('orange')
+
+        orange = self.__canvas.winfo_rgb('darkorange4')
+        navy = self.__canvas.winfo_rgb('blue4')
+        wall_color = self.__canvas.winfo_rgb('aquamarine4')
+        floor_color = self.__canvas.winfo_rgb('grey10')
 
         # TODO: Decide whether shapes have their own classes.
-        self.table = Shapes(self.magoz, self.light_source,
-                            'ex12/table.obj', orange,
-                            'item1')
-
-        navy = self.__canvas.winfo_rgb('blue4')
+        self.table = Table(self.magoz, self.light_source, orange)
+        self.__floor = Shapes(self.magoz, room_light_source, 'ex12/floor.obj', floor_color, 'floor')
+        self.__room = Shapes(self.magoz, room_light_source, 'ex12/room.obj', wall_color
+                             , 'room')
         self.__board = Board(self.magoz, self.light_source, navy)
-        self.coin_temp = Shapes(self.magoz, self.light_source, "ex12/coin.obj",
-                                "", 'item2')
 
         self.__cur_state = Matrix3D()
-        self.__cur_state.setIdentity()
 
-        self.__center_location = Point3D(0, 0, 100)
+        self.__cur_state.setMatScale(*self.__center_location.get_points(), 1.5, 1.5, 1.5)
 
         self.__board.build_shape(self.__center_location.x,
                                  self.__center_location.y,
@@ -38,6 +41,18 @@ class Graphics:
         self.table.build_shape(self.__center_location.x,
                                self.__board.get_big_y() + 700,
                                self.__center_location.z)
+        self.__room.build_shape(self.__center_location.x,
+                                self.__board.get_big_y() + 700,
+                                self.__center_location.z - 1000)
+        self.__floor.build_shape(self.__center_location.x,
+                                self.__board.get_big_y() + 700,
+                                self.__center_location.z - 1000)
+
+        temp = Matrix3D()
+        temp.setMatRotateYFix(math.pi, *self.__floor.get_middle().get_points())
+        # self.__floor.mull_points(temp)
+
+
 
         self.__coins = [[]]
         self.__active_coins = []
@@ -58,7 +73,8 @@ class Graphics:
     def prepare_and_draw_all(self):
         self.table.mull_points(self.__cur_state)
         self.__board.mull_points(self.__cur_state)
-        self.coin_temp.mull_points(self.__cur_state)
+        self.__room.mull_points(self.__cur_state)
+        self.__floor.mull_points(self.__cur_state)
         self.__center_location.mull_point(self.__cur_state)
         self.__board_top.mull_point(self.__cur_state)
         self.__board_bottom.mull_point(self.__cur_state)
@@ -72,10 +88,14 @@ class Graphics:
         for column in self.__column_points:
             for point in column:
                 point.mull_point(self.__cur_state)
+        self.__room.real_to_guf()
+        self.__floor.real_to_guf()
         self.table.real_to_guf()
         self.__board.real_to_guf()
 
         # TODO: Make this a sorted data structure:
+        self.__room.convert_and_show(self.__canvas)
+        self.__floor.convert_and_show(self.__canvas)
         if self.__board_top.z < self.table.get_middle().z:
             self.table.convert_and_show(self.__canvas)
             self.__board.convert_and_show_back(self.__canvas)
@@ -119,9 +139,9 @@ class Graphics:
         y0 = 0
         z0 = 0
         for i in range(1, 6):
-            ddx = vx0 + 0.5 * ax * i **2
-            ddy = vy0 + 0.5 * ay * i **2
-            ddz = vy0 + 0.5 * az * i **2
+            ddx = vx0 + 0.5 * ax * i ** 2
+            ddy = vy0 + 0.5 * ay * i ** 2
+            ddz = vy0 + 0.5 * az * i ** 2
             matrix.setMatMove(ddx - x0, ddy - y0, ddz - z0)
             x0 = ddx
             y0 = ddy
@@ -150,17 +170,21 @@ class Graphics:
 
     def __key_pressed(self, event):
 
-
-
         key = event.keysym
         mat1 = Matrix3D()
         mat1.setIdentity()
 
         if key == 'plus':
-            mat1.setMatMove(0, 0, -30)
+            #mat1.setMatMove(0, 0, -300)
+            mat1.setMatScale(*self.__center_location.get_points(),
+                                         1.1, 1.1, 1.1)
+
 
         elif key == 'minus':
-            mat1.setMatMove(0, 0, 30)
+            #mat1.setMatMove(0, 0, 300)
+            mat1.setMatScale(*self.__center_location.get_points(),
+                                         1/1.1, 1/1.1, 1/1.1)
+
 
         elif key == 'Up':
             angle = math.pi / 45
