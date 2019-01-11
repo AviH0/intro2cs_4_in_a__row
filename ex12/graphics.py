@@ -8,7 +8,7 @@ import copy
 
 
 class Graphics:
-    def __init__(self, canvas):
+    def __init__(self, canvas, player_1_color='red', player_2_color='green'):
         self.__canvas = canvas
         self.__canvas.configure(height=900, width=900, bg='grey')
         self.__canvas.master.bind('<Key>', self.__key_pressed)
@@ -18,24 +18,43 @@ class Graphics:
         room_light_source = (500, 0, 5000)
         self.__center_location = Point3D(0, 0, 5000)
 
-
         orange = self.__canvas.winfo_rgb('darkorange4')
         navy = self.__canvas.winfo_rgb('blue4')
         wall_color = self.__canvas.winfo_rgb('aquamarine4')
         floor_color = self.__canvas.winfo_rgb('grey10')
         black = self.__canvas.winfo_rgb('black')
+        self.__player_1_color = self.__canvas.winfo_rgb(player_1_color)
+        self.__player_2_color = self.__canvas.winfo_rgb(player_2_color)
 
         # TODO: Decide whether shapes have their own classes.
         self.table = Table(self.magoz, self.light_source, orange)
-        self.__floor = Shapes(self.magoz, room_light_source, 'ex12/floor.obj', floor_color, 'floor')
-        self.__room = Shapes(self.magoz, room_light_source, 'ex12/room.obj', wall_color
+        self.__floor = Shapes(self.magoz, room_light_source, 'ex12/floor.obj',
+                              floor_color, 'floor')
+        self.__room = Shapes(self.magoz, room_light_source, 'ex12/room.obj',
+                             wall_color
                              , 'room')
-        self.__text = Shapes(self.magoz, room_light_source, 'ex12/text.obj', black, 'text')
+        self.__text = Shapes(self.magoz, room_light_source, 'ex12/text.obj',
+                             black, 'text')
         self.__board = Board(self.magoz, self.light_source, navy)
+        self.__player = Shapes(self.magoz, self.light_source,
+                               'ex12/player.obj', self.__player_1_color,
+                               'player')
+        self.__player_1 = Shapes(self.magoz, self.light_source,
+                                 'ex12/number_1.obj', self.__player_1_color,
+                                 'player_number')
+        self.__player_2 = Shapes(self.magoz, self.light_source,
+                                 'ex12/number_2.obj', self.__player_2_color,
+                                 'player_number')
+
+        self.__players = [self.__player_1, self.__player_2]
+        self.__player_colors = [self.__player_1_color, self.__player_2_color]
+
+        self.__current_player = 0
 
         self.__cur_state = Matrix3D()
 
-        self.__cur_state.setMatScale(*self.__center_location.get_points(), 1.5, 1.5, 1.5)
+        self.__cur_state.setMatScale(*self.__center_location.get_points(), 1.5,
+                                     1.5, 1.5)
 
         self.__board.build_shape(self.__center_location.x,
                                  self.__center_location.y,
@@ -47,13 +66,11 @@ class Graphics:
                                 self.__board.get_big_y() + 700,
                                 self.__center_location.z - 1000)
         self.__floor.build_shape(self.__center_location.x,
-                                self.__board.get_big_y() + 700,
-                                self.__center_location.z - 1000)
+                                 self.__board.get_big_y() + 700,
+                                 self.__center_location.z - 1000)
         self.__text.build_shape(self.__center_location.x,
                                 self.__board.get_big_y() + 700,
                                 self.__center_location.z - 1000)
-
-
 
         self.__coins = [[]]
         self.__active_coins = []
@@ -67,8 +84,18 @@ class Graphics:
                                       self.__board.get_big_y(),
                                       self.__board.get_middle().z)
 
+
+        self.__player.build_shape(self.__board_top.x - 20,
+                                    self.__board_top.y - 20,
+                                    self.__board_top.z - 25)
+        self.__player_1.build_shape(self.__board_top.x - 20,
+                                    self.__board_top.y - 20,
+                                    self.__board_top.z - 25)
+        self.__player_2.build_shape(self.__board_top.x - 20,
+                                    self.__board_top.y - 20,
+                                    self.__board_top.z - 25)
+
         self.__create_coins_and_column_pointers()
-        self.__working = False
         self.prepare_and_draw_all()
 
     def prepare_and_draw_all(self):
@@ -80,6 +107,10 @@ class Graphics:
         self.__center_location.mull_point(self.__cur_state)
         self.__board_top.mull_point(self.__cur_state)
         self.__board_bottom.mull_point(self.__cur_state)
+        self.__player.mull_points(self.__cur_state)
+        self.__player_1.mull_points(self.__cur_state)
+        self.__player_2.mull_points(self.__cur_state)
+
         for column in self.__coins:
             for coin in column:
                 coin.mull_points(self.__cur_state)
@@ -95,6 +126,9 @@ class Graphics:
         self.__floor.real_to_guf()
         self.table.real_to_guf()
         self.__board.real_to_guf()
+        self.__player.real_to_guf()
+        self.__player_1.real_to_guf()
+        self.__player_2.real_to_guf()
 
         # TODO: Make this a sorted data structure:
         self.__room.convert_and_show(self.__canvas)
@@ -108,19 +142,26 @@ class Graphics:
             for coin in self.__active_coins:
                 coin.convert_and_show(self.__canvas)
             self.__board.convert_and_show_front(self.__canvas)
+            self.__player.convert_and_show(self.__canvas)
+            self.__players[self.__current_player].convert_and_show(
+                self.__canvas)
         else:
             self.__board.convert_and_show_back(self.__canvas)
             for coin in self.__active_coins:
                 coin.convert_and_show(self.__canvas)
             self.__board.convert_and_show_front(self.__canvas)
+            self.__player.convert_and_show(self.__canvas)
+            self.__players[self.__current_player].convert_and_show(
+                self.__canvas)
             self.table.convert_and_show(self.__canvas)
         self.__canvas.update_idletasks()
 
-    def play_coin(self, column, color):
+    def play_coin(self, column):
+        color = self.__player_colors[self.__current_player]
         coin_to_play = self.__coins[column].pop()
-        color_rgb = self.__canvas.winfo_rgb(color)
-        coin_to_play.set_color(color_rgb)
+        coin_to_play.set_color(color)
         self.__active_coins.append(coin_to_play)
+        self.__current_player ^= 1
         self.__place_coin(coin_to_play, column)
 
     def __place_coin(self, coin, column):
@@ -181,15 +222,15 @@ class Graphics:
         mat1.setIdentity()
 
         if key == 'plus':
-            #mat1.setMatMove(0, 0, -300)
+            # mat1.setMatMove(0, 0, -300)
             mat1.setMatScale(*self.__center_location.get_points(),
-                                         1.1, 1.1, 1.1)
+                             1.1, 1.1, 1.1)
 
 
         elif key == 'minus':
-            #mat1.setMatMove(0, 0, 300)
+            # mat1.setMatMove(0, 0, 300)
             mat1.setMatScale(*self.__center_location.get_points(),
-                                         1/1.1, 1/1.1, 1/1.1)
+                             1 / 1.1, 1 / 1.1, 1 / 1.1)
 
 
         elif key == 'Up':
@@ -212,7 +253,7 @@ class Graphics:
 
         elif key.isnumeric():
             try:
-                self.play_coin(int(key), 'red')
+                self.play_coin(int(key))
                 self.__cur_state.setIdentity()
             except IndexError:
                 pass

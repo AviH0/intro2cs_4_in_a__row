@@ -6,32 +6,17 @@ class Matrix3D:
     SIZE = 4
 
     def __init__(self):
-        self.mat = [[0 for i in range(self.SIZE)] for j in range(self.SIZE)]
-        self.setIdentity()
+        self.mat = np.identity(self.SIZE)
 
-    def is_identity(self):
-        identity = Matrix3D()
-        identity.setIdentity()
-        return self.mat == identity.mat
+    def check_identity(self):
+
+        identity = np.identity(self.SIZE)
+        return np.allclose(self.mat, identity)
 
     def setIdentity(self):
 
-        self.mat[0][0] = 1.0
-        self.mat[0][1] = 0.0
-        self.mat[0][2] = 0.0
-        self.mat[0][3] = 0.0
-        self.mat[1][0] = 0.0
-        self.mat[1][1] = 1.0
-        self.mat[1][2] = 0.0
-        self.mat[1][3] = 0.0
-        self.mat[2][0] = 0.0
-        self.mat[2][1] = 0.0
-        self.mat[2][2] = 1.0
-        self.mat[2][3] = 0.0
-        self.mat[3][0] = 0.0
-        self.mat[3][1] = 0.0
-        self.mat[3][2] = 0.0
-        self.mat[3][3] = 1.0
+
+        self.mat = np.identity(4)
 
     def setMatMove(self, dx, dy, dz):
 
@@ -257,15 +242,16 @@ class Matrix3D:
 
     def mullMatMat(self, a_mat):
 
-        temp = Matrix3D()
-        for i in range(self.SIZE):
-            for j in range(self.SIZE):
+        # temp = Matrix3D()
+        # for i in range(self.SIZE):
+        #     for j in range(self.SIZE):
+        #
+        #         temp.mat[i][j] = 0
+        #         for k in range(self.SIZE):
+        #             temp.mat[i][j] += self.mat[i][k] * a_mat.mat[k][j]
 
-                temp.mat[i][j] = 0
-                for k in range(self.SIZE):
-                    temp.mat[i][j] += self.mat[i][k] * a_mat.mat[k][j]
-
-        self.mat = temp.mat
+        matmul = np.matmul(self.mat, a_mat.mat)
+        self.mat = matmul
 
     def mullAllPoints(self, xr, yr, zr, aNum):
         #

@@ -74,16 +74,15 @@ class Shapes:
             self.x_guf.append(x)
             self.y_guf.append(y)
             self.z_guf.append(z)
-
-            n = np.cross(x, y)
+            n = np.cross((x[0], y[0], z[0]), (x[1], y[1], z[1]))
             n = n / np.linalg.norm(n)
             shade = -np.dot((n[0], n[1], n[2]), self.light_source)
             LIGHT_SOURCE_STRENGTH = 0.2
             self.__shades.append(shade)
             self.__colors.append(
-                "#%04x%04x%04x" % (int(red - abs(0.05 * shade * red)),
-                                   int(green - abs(0.05 * shade * green)),
-                                   int(blue - abs(0.05 * shade * blue))))
+                "#%04x%04x%04x" % (int(red - 0.5 * abs(shade) * red),
+                                   int(green - 0.5 * abs(shade) * green),
+                                   int(blue - 0.5 * abs(shade) * blue)))
 
         self.__guf_order.sort(key=lambda value: min(self.z_guf[value]), reverse=True)
         self.__disp = []
@@ -162,7 +161,6 @@ class Shapes:
         return Point3D(x, y, z)
 
     def convert_and_show(self, canvas):
-        start = time.time()
         tag = self.__id
         canvas.delete(tag)
 
@@ -173,20 +171,20 @@ class Shapes:
             #                self.z_guf[self.__guf_order[i]])
             # TODO: Tidy
             shade = self.__shades[i]
-            if -math.pi/2 <= shade <= math.pi/2:
+            if shade -math.pi/2 <= shade <= math.pi/2:
                 color = self.__colors[self.__guf_order[i]]
                 canvas.create_polygon(self.__disp[self.__guf_order[i]],
                                       fill=color, tag=tag)
-        end = time.time()
-        print(self.__id, 'Time:', end - start)
 
-    def mull_points(self, mat):
-        if mat.is_identity():
+    def mull_points(self, matrix):
+        if matrix.check_identity():
+            print('skipped!')
             return
-        self.x_real, self.y_real, self.z_real = mat.mullAllPoints(self.x_real,
+        self.x_real, self.y_real, self.z_real = matrix.mullAllPoints(self.x_real,
                                                                   self.y_real,
                                                                   self.z_real,
                                                                   self.__num_vertices)
+        print('mull!')
         self.__needs_update = True
 
     def set_color(self, color):
