@@ -23,12 +23,14 @@ class Graphics:
         navy = self.__canvas.winfo_rgb('blue4')
         wall_color = self.__canvas.winfo_rgb('aquamarine4')
         floor_color = self.__canvas.winfo_rgb('grey10')
+        black = self.__canvas.winfo_rgb('black')
 
         # TODO: Decide whether shapes have their own classes.
         self.table = Table(self.magoz, self.light_source, orange)
         self.__floor = Shapes(self.magoz, room_light_source, 'ex12/floor.obj', floor_color, 'floor')
         self.__room = Shapes(self.magoz, room_light_source, 'ex12/room.obj', wall_color
                              , 'room')
+        self.__text = Shapes(self.magoz, room_light_source, 'ex12/text.obj', black, 'text')
         self.__board = Board(self.magoz, self.light_source, navy)
 
         self.__cur_state = Matrix3D()
@@ -47,10 +49,9 @@ class Graphics:
         self.__floor.build_shape(self.__center_location.x,
                                 self.__board.get_big_y() + 700,
                                 self.__center_location.z - 1000)
-
-        temp = Matrix3D()
-        temp.setMatRotateYFix(math.pi, *self.__floor.get_middle().get_points())
-        # self.__floor.mull_points(temp)
+        self.__text.build_shape(self.__center_location.x,
+                                self.__board.get_big_y() + 700,
+                                self.__center_location.z - 1000)
 
 
 
@@ -71,6 +72,7 @@ class Graphics:
         self.prepare_and_draw_all()
 
     def prepare_and_draw_all(self):
+        self.__text.mull_points(self.__cur_state)
         self.table.mull_points(self.__cur_state)
         self.__board.mull_points(self.__cur_state)
         self.__room.mull_points(self.__cur_state)
@@ -88,6 +90,7 @@ class Graphics:
         for column in self.__column_points:
             for point in column:
                 point.mull_point(self.__cur_state)
+        self.__text.real_to_guf()
         self.__room.real_to_guf()
         self.__floor.real_to_guf()
         self.table.real_to_guf()
@@ -95,7 +98,10 @@ class Graphics:
 
         # TODO: Make this a sorted data structure:
         self.__room.convert_and_show(self.__canvas)
-        self.__floor.convert_and_show(self.__canvas)
+        if self.__text.get_middle().z > self.__board.get_middle().z:
+            self.__text.convert_and_show(self.__canvas)
+        if self.__floor.get_middle().z > self.__board_top.z:
+            self.__floor.convert_and_show(self.__canvas)
         if self.__board_top.z < self.table.get_middle().z:
             self.table.convert_and_show(self.__canvas)
             self.__board.convert_and_show_back(self.__canvas)

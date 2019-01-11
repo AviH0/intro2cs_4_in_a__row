@@ -31,6 +31,9 @@ class Table:
         z = (c1 + c2) / 2
         return Point3D(x, y, z)
 
+    def get_big_z(self, x=None):
+        return max(self.__table_legs.get_big_z(), self.__table_top.get_big_z())
+
     def convert_and_show(self, canvas):
         self.__shape_list.sort(key=lambda value: value.get_middle().z, reverse=True)
         for shape in self.__shape_list:
