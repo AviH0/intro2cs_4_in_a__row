@@ -178,13 +178,11 @@ class Shapes:
 
     def mull_points(self, matrix):
         if matrix.check_identity():
-            print('skipped!')
             return
         self.x_real, self.y_real, self.z_real = matrix.mullAllPoints(self.x_real,
                                                                   self.y_real,
                                                                   self.z_real,
                                                                   self.__num_vertices)
-        print('mull!')
         self.__needs_update = True
 
     def set_color(self, color):
