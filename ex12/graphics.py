@@ -159,7 +159,8 @@ class Graphics:
             self.__players[self.__current_player].convert_and_show(
                 self.__canvas)
             self.table.convert_and_show(self.__canvas)
-
+        self.__canvas.tag_raise('time')
+        self.__canvas.update_idletasks()
 
     def play_coin(self, column):
         color = self.__player_colors[self.__current_player]
