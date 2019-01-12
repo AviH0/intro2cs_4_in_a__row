@@ -15,8 +15,8 @@ class Gui:
 
     def __load_rescources(self):
         self.__start_image = tk.PhotoImage(file='ex12/images/start.png')
-        self.__p_v_p = tk.PhotoImage(file='ex12/images/PvP.png')
-        self.__p_v_pc = tk.PhotoImage(file='ex12/images/PvPC.png')
+        self.__p_v_p = tk.PhotoImage(file='ex12/images/pvp.jpeg')
+        self.__p_v_pc = tk.PhotoImage(file='ex12/images/pvc.jpeg')
         self.__pvp_selected = tk.PhotoImage(file='ex12/images/PvP-selected.png')
         self.__pvpc_selected = tk.PhotoImage(file='ex12/images/PvPC-selected.png')
 
@@ -63,3 +63,14 @@ class Gui:
         canvas = tk.Canvas(self.__root)
         graphics = Graphics(canvas)
         canvas.pack()
+
+    def key_pressed(self,game,key):
+        if key <0 or key >6:
+            pass
+        else:
+            game.make_move(key)
+            "update graphics here"
+            if game.get_winner() is not None:
+                "player current player won!"
+
+
