@@ -4,6 +4,7 @@ from .shapes import Shapes
 from .table import Table
 from .room import Room
 import math
+import time
 
 
 class Graphics:
@@ -93,15 +94,12 @@ class Graphics:
 
         self.__create_coins_and_column_pointers()
 
-        self.__time = 0
-        self.__canvas.create_text(110, 50, text='TIME:', fill='black',
-                                  font="Helvetica 30 bold", tags='time')
-
-
-
+        self.__time = time.time()
+        self.__canvas.create_text(170, 30, text='TIME:', fill='red',
+                                  font="Century 25 bold", tags='time')
+        self.__cur_state.setMatRotateXFix(math.pi / 45,
+                                          *self.__center_location.get_points())
         self.prepare_and_draw_all()
-
-        self.__update_clock()
 
     def prepare_and_draw_all(self):
 
@@ -163,7 +161,8 @@ class Graphics:
         self.__canvas.tag_raise('time')
         # self.__canvas.update_idletasks()
         self.__cur_state.setIdentity()
-        self.__canvas.master.after(200, self.prepare_and_draw_all)
+        self.__canvas.master.after(100, self.prepare_and_draw_all)
+        self.__update_clock()
 
     def play_coin(self, column):
         color = self.__player_colors[self.__current_player]
@@ -176,22 +175,16 @@ class Graphics:
     def __place_coin(self, coin, column):
         point = self.__column_points[column].pop()
         dx, dy, dz = -coin.get_middle().x + point.x, -coin.get_middle().y + point.y, -coin.get_middle().z + point.z
+        point = 1 + len(self.__column_points[column])
         self.__animate_coin(point, coin, dx, dy, dz)
 
     def __animate_coin(self, point, coin, dx, dy, dz, x0=0, y0=0, z0=0, i=1):
 
         matrix = Matrix3D()
-        # matrix.setMatMove(dx, dy, dz)
-        # coin.mull_points(matrix)
-        # self.__cur_state.setIdentity()
-        # self.prepare_and_draw_all()
-        ax = (2 * dx / (5 ** 2))
-        ay = (2 * dy / (5 ** 2))
-        az = (2 * dz / (5 ** 2))
-        # x0 = 0
-        # y0 = 0
-        # z0 = 0
-        # for i in range(1, 6):
+
+        ax = (2 * dx / (point ** 2))
+        ay = (2 * dy / (point ** 2))
+        az = (2 * dz / (point ** 2))
         ddx = 0.5 * ax * i ** 2
         ddy = 0.5 * ay * i ** 2
         ddz = 0.5 * az * i ** 2
@@ -201,14 +194,12 @@ class Graphics:
         z0 = ddz
         coin.mull_points(matrix)
         self.__cur_state.setIdentity()
-        if i < 5:
-            self.__canvas.master.after(70,
-                                       lambda: self.__animate_coin(self, coin,
+        if i < point:
+            self.__canvas.master.after(80,
+                                       lambda: self.__animate_coin(point, coin,
                                                                    dx, dy, dz,
                                                                    x0, y0, z0,
                                                                    i + 1))
-        # self.__canvas.update_idletasks()
-        # self.prepare_and_draw_all()
 
     def calc_one_coin(self):
         coin = Shapes(self.magoz, self.light_source,
@@ -237,13 +228,14 @@ class Graphics:
                                      self.__board.get_middle().z)
 
     def __update_clock(self):
-        self.__time += 0.1
+        time_now = time.time() - self.__time
+        time_now = time.gmtime(time_now)
+        str_time = '%02d : %02d : %02d' % (
+        time_now.tm_hour, time_now.tm_min, time_now.tm_sec)
         self.__canvas.tag_raise('time')
-        self.__canvas.itemconfig('time', text='TIME: ' + str(
-            int(self.__time // 3600)) + ':' + str(
-            int(self.__time // 60)) + ':' + str(int(self.__time % 60)))
-        self.__canvas.update_idletasks()
-        self.__canvas.master.after(100, self.__update_clock)
+        self.__canvas.itemconfig('time', text='TIME: ' + str_time)
+        # self.__canvas.update_idletasks()
+        # self.__canvas.master.after(100, self.__update_clock)
 
     def __key_pressed(self, event):
 
