@@ -2,9 +2,8 @@ from .matrix_3D import Matrix3D, Point3D
 from .board import Board
 from .shapes import Shapes
 from .table import Table
-import random
+from .room import Room
 import math
-import copy
 
 
 class Graphics:
@@ -30,9 +29,7 @@ class Graphics:
         self.table = Table(self.magoz, self.light_source, orange)
         self.__floor = Shapes(self.magoz, room_light_source, 'ex12/floor.obj',
                               floor_color, 'floor')
-        self.__room = Shapes(self.magoz, room_light_source, 'ex12/room.obj',
-                             wall_color
-                             , 'room')
+        self.__room = Room(self.magoz, room_light_source, wall_color)
         self.__text = Shapes(self.magoz, room_light_source, 'ex12/text.obj',
                              black, 'text')
         self.__board = Board(self.magoz, self.light_source, navy)
@@ -84,26 +81,30 @@ class Graphics:
                                       self.__board.get_big_y(),
                                       self.__board.get_middle().z)
 
-
-        self.__player.build_shape(self.__board_top.x - 20,
-                                    self.__board_top.y - 20,
+        self.__player.build_shape(self.__board_top.x - 15,
+                                  self.__board_top.y - 25,
+                                  self.__board_top.z - 25)
+        self.__player_1.build_shape(self.__board_top.x - 15,
+                                    self.__board_top.y - 25,
                                     self.__board_top.z - 25)
-        self.__player_1.build_shape(self.__board_top.x - 20,
-                                    self.__board_top.y - 20,
-                                    self.__board_top.z - 25)
-        self.__player_2.build_shape(self.__board_top.x - 20,
-                                    self.__board_top.y - 20,
+        self.__player_2.build_shape(self.__board_top.x - 15,
+                                    self.__board_top.y - 25,
                                     self.__board_top.z - 25)
 
         self.__create_coins_and_column_pointers()
 
         self.__time = 0
-        self.__canvas.create_text(110, 50, text='TIME:', fill='black', font="Helvetica 30 bold", tags='time')
+        self.__canvas.create_text(110, 50, text='TIME:', fill='black',
+                                  font="Helvetica 30 bold", tags='time')
+
+
 
         self.prepare_and_draw_all()
+
         self.__update_clock()
 
     def prepare_and_draw_all(self):
+
         self.__text.mull_points(self.__cur_state)
         self.table.mull_points(self.__cur_state)
         self.__board.mull_points(self.__cur_state)
@@ -136,7 +137,7 @@ class Graphics:
         self.__player_2.real_to_guf()
 
         # TODO: Make this a sorted data structure:
-        self.__room.convert_and_show(self.__canvas)
+        self.__room.convert_and_show(self.__canvas, self.__center_location.z)
         if self.__text.get_middle().z > self.__board.get_middle().z:
             self.__text.convert_and_show(self.__canvas)
         if self.__floor.get_middle().z > self.__board_top.z:
@@ -160,7 +161,9 @@ class Graphics:
                 self.__canvas)
             self.table.convert_and_show(self.__canvas)
         self.__canvas.tag_raise('time')
-        self.__canvas.update_idletasks()
+        # self.__canvas.update_idletasks()
+        self.__cur_state.setIdentity()
+        self.__canvas.master.after(200, self.prepare_and_draw_all)
 
     def play_coin(self, column):
         color = self.__player_colors[self.__current_player]
@@ -175,33 +178,45 @@ class Graphics:
         dx, dy, dz = -coin.get_middle().x + point.x, -coin.get_middle().y + point.y, -coin.get_middle().z + point.z
         self.__animate_coin(point, coin, dx, dy, dz)
 
-    def __animate_coin(self, point, coin, dx, dy, dz):
+    def __animate_coin(self, point, coin, dx, dy, dz, x0=0, y0=0, z0=0, i=1):
 
         matrix = Matrix3D()
         # matrix.setMatMove(dx, dy, dz)
         # coin.mull_points(matrix)
         # self.__cur_state.setIdentity()
         # self.prepare_and_draw_all()
-        vx0 = 0
-        vy0 = 0
-        vz0 = 0
-        ax = (2 * (dx - vx0) / (5 ** 2))
-        ay = (2 * (dy - vy0) / (5 ** 2))
-        az = (2 * (dz - vz0) / (5 ** 2))
-        x0 = 0
-        y0 = 0
-        z0 = 0
-        for i in range(1, 6):
-            ddx = vx0 + 0.5 * ax * i ** 2
-            ddy = vy0 + 0.5 * ay * i ** 2
-            ddz = vy0 + 0.5 * az * i ** 2
-            matrix.setMatMove(ddx - x0, ddy - y0, ddz - z0)
-            x0 = ddx
-            y0 = ddy
-            z0 = ddz
-            coin.mull_points(matrix)
-            self.__cur_state.setIdentity()
-            self.prepare_and_draw_all()
+        ax = (2 * dx / (5 ** 2))
+        ay = (2 * dy / (5 ** 2))
+        az = (2 * dz / (5 ** 2))
+        # x0 = 0
+        # y0 = 0
+        # z0 = 0
+        # for i in range(1, 6):
+        ddx = 0.5 * ax * i ** 2
+        ddy = 0.5 * ay * i ** 2
+        ddz = 0.5 * az * i ** 2
+        matrix.setMatMove(ddx - x0, ddy - y0, ddz - z0)
+        x0 = ddx
+        y0 = ddy
+        z0 = ddz
+        coin.mull_points(matrix)
+        self.__cur_state.setIdentity()
+        if i < 5:
+            self.__canvas.master.after(70,
+                                       lambda: self.__animate_coin(self, coin,
+                                                                   dx, dy, dz,
+                                                                   x0, y0, z0,
+                                                                   i + 1))
+        # self.__canvas.update_idletasks()
+        # self.prepare_and_draw_all()
+
+    def calc_one_coin(self):
+        coin = Shapes(self.magoz, self.light_source,
+                      "ex12/coin.obj", (0, 0, 0),
+                      '')
+        mat = Matrix3D()
+        mat.setMatMove(1, 1, 1)
+        coin.mull_points(mat)
 
     def __create_coins_and_column_pointers(self):
         for i in range(7):
@@ -224,7 +239,9 @@ class Graphics:
     def __update_clock(self):
         self.__time += 0.1
         self.__canvas.tag_raise('time')
-        self.__canvas.itemconfig('time', text='TIME: ' + str(int(self.__time // 3600)) + ':' + str(int(self.__time // 60)) + ':' + str(int(self.__time % 60)))
+        self.__canvas.itemconfig('time', text='TIME: ' + str(
+            int(self.__time // 3600)) + ':' + str(
+            int(self.__time // 60)) + ':' + str(int(self.__time % 60)))
         self.__canvas.update_idletasks()
         self.__canvas.master.after(100, self.__update_clock)
 
@@ -274,4 +291,4 @@ class Graphics:
                 return
 
         self.__cur_state = mat1
-        self.prepare_and_draw_all()
+        # self.prepare_and_draw_all()

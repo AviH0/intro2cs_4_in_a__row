@@ -3,7 +3,7 @@ import math
 import numpy as np
 from .matrix_3D import Point3D, Matrix3D
 import tkinter
-import time
+import timeit
 
 
 class Shapes:
@@ -57,7 +57,6 @@ class Shapes:
         self.y_guf = []
         self.z_guf = []
         self.__colors = []
-        self.__shades = []
         red, green, blue = self.__color
         for face in self.__faces:
             a, b, c = face.split(' ')
@@ -76,15 +75,15 @@ class Shapes:
             self.z_guf.append(z)
             n = np.cross((x[0], y[0], z[0]), (x[1], y[1], z[1]))
             n = n / np.linalg.norm(n)
-            shade = -np.dot((n[0], n[1], n[2]), self.light_source)
+            shade = np.dot((n[0], n[1], n[2]), self.light_source)
             LIGHT_SOURCE_STRENGTH = 0.2
-            self.__shades.append(shade)
             self.__colors.append(
                 "#%04x%04x%04x" % (int(red - 0.5 * abs(shade) * red),
                                    int(green - 0.5 * abs(shade) * green),
                                    int(blue - 0.5 * abs(shade) * blue)))
 
-        self.__guf_order.sort(key=lambda value: min(self.z_guf[value]), reverse=True)
+        self.__guf_order.sort(key=lambda value: min(self.z_guf[value]),
+                              reverse=True)
         self.__disp = []
         for i in range(len(self.__faces)):
             self.__convert(self.x_guf[self.__guf_order[i]],
@@ -94,8 +93,8 @@ class Shapes:
 
     # self.guf_order = [i for i in range(self.__num_faces)]
 
-    # def __check(self, x1, y1, x2, y2, x3, y3):
-    #     return x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2) > 0
+    def __check(self, x1, y1, x2, y2, x3, y3):
+        return x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2) > 0
 
     def __convert(self, x, y, z):
         if self.__magoz:
@@ -164,14 +163,12 @@ class Shapes:
         tag = self.__id
         canvas.delete(tag)
 
-        r, g, b = self.__color
-        for i in range(len(self.__faces)):
-            # self.__convert(self.x_guf[self.__guf_order[i]],
-            #                self.y_guf[self.__guf_order[i]],
-            #                self.z_guf[self.__guf_order[i]])
+        for i in range(self.__num_faces):
+
             # TODO: Tidy
-            shade = self.__shades[i]
-            if shade -math.pi/2 <= shade <= math.pi/2:
+            if not self.__check(*self.__disp[self.__guf_order[i]][0],
+                                *self.__disp[self.__guf_order[i]][1],
+                                *self.__disp[self.__guf_order[i]][2]):
                 color = self.__colors[self.__guf_order[i]]
                 canvas.create_polygon(self.__disp[self.__guf_order[i]],
                                       fill=color, tag=tag)
@@ -179,10 +176,11 @@ class Shapes:
     def mull_points(self, matrix):
         if matrix.check_identity():
             return
-        self.x_real, self.y_real, self.z_real = matrix.mullAllPoints(self.x_real,
-                                                                  self.y_real,
-                                                                  self.z_real,
-                                                                  self.__num_vertices)
+        self.x_real, self.y_real, self.z_real = matrix.mullAllPoints(
+            self.x_real,
+            self.y_real,
+            self.z_real,
+            self.__num_vertices)
         self.__needs_update = True
 
     def set_color(self, color):
