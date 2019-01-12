@@ -15,8 +15,8 @@ class Gui:
 
     def __load_rescources(self):
         self.__start_image = tk.PhotoImage(file='ex12/images/start.png')
-        self.__p_v_p = tk.PhotoImage(file='ex12/images/pvp.jpeg')
-        self.__p_v_pc = tk.PhotoImage(file='ex12/images/pvc.jpeg')
+        self.__p_v_p = tk.PhotoImage(file='ex12/images/pvp.png')
+        self.__p_v_pc = tk.PhotoImage(file='ex12/images/pvc.png')
         self.__pvp_selected = tk.PhotoImage(file='ex12/images/PvP-selected.png')
         self.__pvpc_selected = tk.PhotoImage(file='ex12/images/PvPC-selected.png')
 
