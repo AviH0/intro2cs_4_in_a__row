@@ -12,15 +12,14 @@ class Game:
                 self.cells[i].append(0)
 
     def make_move(self, column):
-        if column >6:
-            return "bad move!"
-        for row in range(6):
+        if column >6 or column <0:
+            raise ValueError("illegal move")
+        for row in range(5,-1,-1):
             if self.get_player_at(row,column) is None:
                 self.cells[row][column]=self.current_player
                 self.change_cur_player()
-                break
-
-        return "col is filled up"
+                return
+        raise ValueError("illegal move")
     def get_winner(self):
         """go over a row:"""
         seq=""
@@ -68,19 +67,32 @@ class Game:
             self.current_player=1
 
     def get_player_at(self, row, col):
+        if row>5 or row<0:
+            raise ValueError("illegal move")
+        if col >6 or col <0:
+            raise ValueError("illegal move")
         if self.cells[row][col] == 0:
             return None
         return self.cells[row][col]
 
     def get_current_player(self):
-        return self.get_current_player()
-game=Game()
-game.make_move(0)
-game.make_move(1)
-game.make_move(0)
-game.make_move(1)
-game.make_move(0)
-game.make_move(1)
-game.make_move(0)
-game.make_move(1)
-print(game.get_winner())
+        return self.current_player
+
+    def print_board(self):
+        st=""
+        for row in range(self.ROWS_NUM):
+            for col in range(self.COLS_NUM):
+                st+= str(self.cells[row][col])
+            print(st)
+            st=""
+
+# game=Game()
+# while  True:
+#     game.print_board()
+#     print("player",game.get_current_player(),"this is ur turn!")
+#     x=input("enter col: ")
+#     game.make_move(int(x))
+#     if game.get_winner() is not None:
+#         print("player",game.get_winner()," won")
+#         game.print_board()
+#         break
