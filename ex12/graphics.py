@@ -231,56 +231,39 @@ class Graphics:
         time_now = time.time() - self.__time
         time_now = time.gmtime(time_now)
         str_time = '%02d : %02d : %02d' % (
-        time_now.tm_hour, time_now.tm_min, time_now.tm_sec)
+            time_now.tm_hour, time_now.tm_min, time_now.tm_sec)
         self.__canvas.tag_raise('time')
         self.__canvas.itemconfig('time', text='TIME: ' + str_time)
         # self.__canvas.update_idletasks()
         # self.__canvas.master.after(100, self.__update_clock)
 
-    def __key_pressed(self, event):
-
-        key = event.keysym
+    def move_camera(self, **kwargs):
         mat1 = Matrix3D()
-        mat1.setIdentity()
-
-        if key == 'plus':
-            # mat1.setMatMove(0, 0, -300)
-            mat1.setMatScale(*self.__center_location.get_points(),
-                             1.1, 1.1, 1.1)
-
-
-        elif key == 'minus':
-            # mat1.setMatMove(0, 0, 300)
-            mat1.setMatScale(*self.__center_location.get_points(),
-                             1 / 1.1, 1 / 1.1, 1 / 1.1)
-
-
-        elif key == 'Up':
-            angle = math.pi / 45
-            mat1.setMatRotateXFix(angle, *self.__center_location.get_points())
-
-        elif key == 'Down':
-            angle = -math.pi / 45
-            mat1.setMatRotateXFix(angle, *self.__center_location.get_points())
-
-        elif key == 'Left':
-            angle = -math.pi / 45
+        if 'right' in kwargs.keys():
+            angle = -math.radians(kwargs['right'])
             mat1.setMatRotateAxis(*self.__board_top.get_points(),
                                   *self.__board_bottom.get_points(), angle)
+            self.__cur_state.mullMatMat(mat1)
 
-        elif key == 'Right':
-            angle = math.pi / 45
+        if 'left' in kwargs.keys():
+            angle = math.radians(kwargs['left'])
             mat1.setMatRotateAxis(*self.__board_top.get_points(),
                                   *self.__board_bottom.get_points(), angle)
+            self.__cur_state.mullMatMat(mat1)
 
-        elif key.isnumeric():
-            try:
-                self.play_coin(int(key))
-                self.__cur_state.setIdentity()
-            except IndexError:
-                pass
-            finally:
-                return
+        if 'zoom' in kwargs.keys():  # mat1.setMatMove(0, 0, -300)
+            mat1.setMatScale(*self.__center_location.get_points(),
+                             kwargs['zoom'], kwargs['zoom'], kwargs['zoom'])
+            self.__cur_state.mullMatMat(mat1)
 
-        self.__cur_state = mat1
-        # self.prepare_and_draw_all()
+        if 'up' in kwargs.keys():
+            angle = -math.radians(kwargs['up'])
+            mat1.setMatRotateXFix(angle,
+                                  *self.__center_location.get_points())
+            self.__cur_state.mullMatMat(mat1)
+
+        if 'down' in kwargs.keys():
+            angle = math.radians(kwargs['down'])
+            mat1.setMatRotateXFix(angle,
+                                  *self.__center_location.get_points())
+            self.__cur_state.mullMatMat(mat1)
