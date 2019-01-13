@@ -8,113 +8,180 @@ import time
 
 
 class Graphics:
-    def __init__(self, canvas, player_1_color='red', player_2_color='green'):
+    # Files:
+    FLOOR_FILE = 'ex12/floor.obj'
+    TEXT_FILE = 'ex12/text.obj'
+    PLAYER_FILE = 'ex12/player.obj'
+    NUMBER_1_FILE = 'ex12/number_1.obj'
+    NUMBER_2_FILE = 'ex12/number_2.obj'
+
+    # Tags:
+    FLOOR_TAG = 'Floor'
+    TEXT_TAG = 'Text'
+    PLAYER_TAG = 'Player'
+    NUMBER_1_TAG = 'Number_1'
+    NUMBER_2_TAG = 'Number_2'
+
+    # Canvas:
+    HEIGHT = 900
+    WIDTH = 900
+    BACKGROUND_COLOR = 'grey'
+
+    # Points:
+    DEPTH = 5000
+    MAGOZ = WIDTH / 2, HEIGHT / 3, DEPTH
+    CENTER_LOCATION = 0, 0, DEPTH
+    LIGHT_SOURCE = 500, 500, 4900
+
+    # Location:
+    BOARD_LOCATION = CENTER_LOCATION[0] + 0, CENTER_LOCATION[1] + 0, \
+                     CENTER_LOCATION[2] + 200
+
+    TABLE_LOCATION = CENTER_LOCATION[0] + 0, CENTER_LOCATION[1] + 850, \
+                     CENTER_LOCATION[2] + 0
+
+    ROOM_LOCATION = CENTER_LOCATION[0] + 0, CENTER_LOCATION[1] + 850, \
+                    CENTER_LOCATION[2] + -1000
+
+    FLOOR_LOCATION = CENTER_LOCATION[0] + 0, CENTER_LOCATION[1] + 850, \
+                     CENTER_LOCATION[2] + -1000
+
+    TEXT_LOCATION = CENTER_LOCATION[0] + 0, CENTER_LOCATION[1] + 850, \
+                    CENTER_LOCATION[2] + -1000
+
+    PLAYER_DISPLAY_OFFSET = -15, -25, -25
+
+    # Colors:
+
+    TABLE_COLOR = 'darkorange4'
+    BOARD_COLOR = 'blue4'
+    WALL_COLOR = 'aquamarine4'
+    FLOOR_COLOR = 'grey10'
+    BLACK = 'black'
+    RED = 'red'
+    GREEN = 'green'
+
+    def __init__(self, canvas, player_1_color=RED, player_2_color=GREEN):
+
+        # Configure Canvas:
         self.__canvas = canvas
-        self.__canvas.configure(height=900, width=900, bg='grey')
-        self.__canvas.master.bind('<Key>', self.__key_pressed)
+        self.__canvas.configure(height=self.HEIGHT, width=self.WIDTH,
+                                bg=self.BACKGROUND_COLOR)
+        # self.__canvas.master.bind('<Key>', self.__key_pressed)
 
-        self.magoz = (900 / 2, 900 / 3, 5000)
-        self.light_source = (500, 500, 4900)
-        room_light_source = (500, 0, 5000)
-        self.__center_location = Point3D(0, 0, 5000)
+        # Environment points:
+        self.magoz = Point3D(*self.MAGOZ)
+        self.__light_source = Point3D(*self.LIGHT_SOURCE)
+        self.__room_light_source = Point3D(
+            *self.LIGHT_SOURCE)  # (500, 0, 5000)
 
-        orange = self.__canvas.winfo_rgb('darkorange4')
-        navy = self.__canvas.winfo_rgb('blue4')
-        wall_color = self.__canvas.winfo_rgb('aquamarine4')
-        floor_color = self.__canvas.winfo_rgb('grey10')
-        black = self.__canvas.winfo_rgb('black')
-        self.__player_1_color = self.__canvas.winfo_rgb(player_1_color)
-        self.__player_2_color = self.__canvas.winfo_rgb(player_2_color)
+        # Create all the shapes:
+        self.__init_shapes(player_1_color, player_2_color)
 
-        # TODO: Decide whether shapes have their own classes.
-        self.table = Table(self.magoz, self.light_source, orange)
-        self.__floor = Shapes(self.magoz, room_light_source, 'ex12/floor.obj',
-                              floor_color, 'floor')
-        self.__room = Room(self.magoz, room_light_source, wall_color)
-        self.__text = Shapes(self.magoz, room_light_source, 'ex12/text.obj',
-                             black, 'text')
-        self.__board = Board(self.magoz, self.light_source, navy)
-        self.__player = Shapes(self.magoz, self.light_source,
-                               'ex12/player.obj', navy,
-                               'player')
-        self.__player_1 = Shapes(self.magoz, self.light_source,
-                                 'ex12/number_1.obj', self.__player_1_color,
-                                 'player_number')
-        self.__player_2 = Shapes(self.magoz, self.light_source,
-                                 'ex12/number_2.obj', self.__player_2_color,
-                                 'player_number')
 
+        # Build the shapes
+        self.__build_shapes()
+
+        # Create the points:
+        self.__init_points()
+
+        # Player handles:
         self.__players = [self.__player_1, self.__player_2]
         self.__player_colors = [self.__player_1_color, self.__player_2_color]
-
         self.__current_player = 0
 
-        self.__cur_state = Matrix3D()
+        # Create the matrix and set the first transformation:
+        self.__first_transformation()
 
-        self.__cur_state.setMatScale(*self.__center_location.get_points(), 1.5,
-                                     1.5, 1.5)
-
-        self.__board.build_shape(self.__center_location.x,
-                                 self.__center_location.y,
-                                 self.__center_location.z + 200)
-        self.table.build_shape(self.__center_location.x,
-                               self.__board.get_big_y() + 700,
-                               self.__center_location.z)
-        self.__room.build_shape(self.__center_location.x,
-                                self.__board.get_big_y() + 700,
-                                self.__center_location.z - 1000)
-        self.__floor.build_shape(self.__center_location.x,
-                                 self.__board.get_big_y() + 700,
-                                 self.__center_location.z - 1000)
-        self.__text.build_shape(self.__center_location.x,
-                                self.__board.get_big_y() + 700,
-                                self.__center_location.z - 1000)
-
-        self.__coins = [[]]
+        # Initiate the lists for the coins and for the column pointers:
+        self.__coins = []
         self.__active_coins = []
-        self.__column_points = [[]]
+        self.__column_points = []
 
-        # TODO: Move this stuff into board.
-        self.__board_top = Point3D(self.__board.get_middle().x,
-                                   self.__board.get_small_y(),
-                                   self.__board.get_middle().z)
-        self.__board_bottom = Point3D(self.__board.get_middle().x,
-                                      self.__board.get_big_y(),
-                                      self.__board.get_middle().z)
+        # Create all the coins and place_holders:
+        self.__create_coins_and_place_holders()
 
-        self.__player.build_shape(self.__board_top.x - 15,
-                                  self.__board_top.y - 25,
-                                  self.__board_top.z - 25)
-        self.__player_1.build_shape(self.__board_top.x - 15,
-                                    self.__board_top.y - 25,
-                                    self.__board_top.z - 25)
-        self.__player_2.build_shape(self.__board_top.x - 15,
-                                    self.__board_top.y - 25,
-                                    self.__board_top.z - 25)
-
-        self.__create_coins_and_column_pointers()
-
+        # Save the time of initiation for the timer:
         self.__time = time.time()
+
+        # Create the Timer:
         self.__canvas.create_text(170, 30, text='TIME:', fill='red',
                                   font="Century 25 bold", tags='time')
-        self.__cur_state.setMatRotateXFix(math.pi / 45,
-                                          *self.__center_location.get_points())
+
+        # Make the first call to redraw:
         self.prepare_and_draw_all()
+
+    def __build_shapes(self):
+        # Build all the shapes:
+        self.__board.build_shape(*self.BOARD_LOCATION)
+        self.__table.build_shape(*self.TABLE_LOCATION)
+        self.__room.build_shape(*self.ROOM_LOCATION)
+        self.__floor.build_shape(*self.FLOOR_LOCATION)
+        self.__text.build_shape(*self.TEXT_LOCATION)
+        self.__player_display_location = Point3D(
+            self.__board.get_board_top().x + self.PLAYER_DISPLAY_OFFSET[0],
+            self.__board.get_board_top().y + self.PLAYER_DISPLAY_OFFSET[1],
+            self.__board.get_board_top().z + self.PLAYER_DISPLAY_OFFSET[2])
+        self.__player.build_shape(*self.__player_display_location.get_points())
+        self.__player_1.build_shape(
+            *self.__player_display_location.get_points())
+        self.__player_2.build_shape(
+            *self.__player_display_location.get_points())
+
+    def __init_points(self):
+        # Create Points:
+        self.__center_location = Point3D(*self.CENTER_LOCATION)
+
+
+    def __init_shapes(self, player_1_color, player_2_color):
+        # Get RGB colors:
+        table_color = self.__canvas.winfo_rgb(self.TABLE_COLOR)
+        board_color = self.__canvas.winfo_rgb(self.BOARD_COLOR)
+        wall_color = self.__canvas.winfo_rgb(self.WALL_COLOR)
+        floor_color = self.__canvas.winfo_rgb(self.FLOOR_COLOR)
+        black = self.__canvas.winfo_rgb(self.BLACK)
+        self.__player_1_color = self.__canvas.winfo_rgb(player_1_color)
+        self.__player_2_color = self.__canvas.winfo_rgb(player_2_color)
+        # Create all Shapes:
+        self.__table = Table(self.magoz, self.__light_source, table_color)
+        self.__floor = Shapes(self.magoz, self.__room_light_source,
+                              self.FLOOR_FILE,
+                              floor_color, self.FLOOR_TAG)
+        self.__room = Room(self.magoz, self.__room_light_source, wall_color)
+        self.__text = Shapes(self.magoz, self.__room_light_source,
+                             self.TEXT_FILE,
+                             black, self.TEXT_TAG)
+        self.__board = Board(self.magoz, self.__light_source, board_color)
+        self.__player = Shapes(self.magoz, self.__light_source,
+                               self.PLAYER_FILE, board_color,
+                               self.PLAYER_TAG)
+        self.__player_1 = Shapes(self.magoz, self.__light_source,
+                                 self.NUMBER_1_FILE, self.__player_1_color,
+                                 self.NUMBER_1_TAG)
+        self.__player_2 = Shapes(self.magoz, self.__light_source,
+                                 self.NUMBER_2_FILE, self.__player_2_color,
+                                 self.NUMBER_2_TAG)
+        self.__shapes = [self.__table, self.__floor, self.__room, self.__text,
+                         self.__board, self.__player, self.__player_1,
+                         self.__player_2]
+
+    def __first_transformation(self):
+        self.__cur_state = Matrix3D()
+        temp = Matrix3D()
+        # temp.setMatScale(*self.__center_location.get_points(), 1.5,
+        #                  1.5, 1.5)
+        self.__cur_state.mullMatMat(temp)
+        temp.setMatRotateXFix(math.pi / 45,
+                              *self.__center_location.get_points())
+        self.__cur_state.mullMatMat(temp)
 
     def prepare_and_draw_all(self):
 
-        self.__text.mull_points(self.__cur_state)
-        self.table.mull_points(self.__cur_state)
-        self.__board.mull_points(self.__cur_state)
-        self.__room.mull_points(self.__cur_state)
-        self.__floor.mull_points(self.__cur_state)
+        # Transform all the shapes with the current matrix:
+        for shape in self.__shapes:
+            shape.mull_points(self.__cur_state)
+            shape.real_to_guf()
         self.__center_location.mull_point(self.__cur_state)
-        self.__board_top.mull_point(self.__cur_state)
-        self.__board_bottom.mull_point(self.__cur_state)
-        self.__player.mull_points(self.__cur_state)
-        self.__player_1.mull_points(self.__cur_state)
-        self.__player_2.mull_points(self.__cur_state)
-
         for column in self.__coins:
             for coin in column:
                 coin.mull_points(self.__cur_state)
@@ -125,44 +192,39 @@ class Graphics:
         for column in self.__column_points:
             for point in column:
                 point.mull_point(self.__cur_state)
-        self.__text.real_to_guf()
-        self.__room.real_to_guf()
-        self.__floor.real_to_guf()
-        self.table.real_to_guf()
-        self.__board.real_to_guf()
-        self.__player.real_to_guf()
-        self.__player_1.real_to_guf()
-        self.__player_2.real_to_guf()
 
-        # TODO: Make this a sorted data structure:
+        # Draw all the relevant shapes for the current view:
         self.__room.convert_and_show(self.__canvas, self.__center_location.z)
+
         if self.__text.get_middle().z > self.__board.get_middle().z:
             self.__text.convert_and_show(self.__canvas)
-        if self.__floor.get_middle().z > self.__board_top.z:
+
+        if self.__floor.get_middle().z > self.__board.get_board_top().z:
             self.__floor.convert_and_show(self.__canvas)
-        if self.__board_top.z < self.table.get_middle().z:
-            self.table.convert_and_show(self.__canvas)
-            self.__board.convert_and_show_back(self.__canvas)
-            for coin in self.__active_coins:
-                coin.convert_and_show(self.__canvas)
-            self.__board.convert_and_show_front(self.__canvas)
-            self.__player.convert_and_show(self.__canvas)
-            self.__players[self.__current_player].convert_and_show(
-                self.__canvas)
-        else:
-            self.__board.convert_and_show_back(self.__canvas)
-            for coin in self.__active_coins:
-                coin.convert_and_show(self.__canvas)
-            self.__board.convert_and_show_front(self.__canvas)
-            self.__player.convert_and_show(self.__canvas)
-            self.__players[self.__current_player].convert_and_show(
-                self.__canvas)
-            self.table.convert_and_show(self.__canvas)
-        self.__canvas.tag_raise('time')
-        # self.__canvas.update_idletasks()
+
+        if self.__board.get_board_top().z < self.__table.get_middle().z:
+            self.__table.convert_and_show(self.__canvas)
+
+        self.__board.convert_and_show_back(self.__canvas)
+        for coin in self.__active_coins:
+            coin.convert_and_show(self.__canvas)
+        self.__board.convert_and_show_front(self.__canvas)
+        self.__player.convert_and_show(self.__canvas)
+        self.__players[self.__current_player].convert_and_show(
+            self.__canvas)
+
+        if self.__board.get_board_top().z >= self.__table.get_middle().z:
+            self.__table.convert_and_show(self.__canvas)
+
+
+        # Reset the matrix:
         self.__cur_state.setIdentity()
-        self.__canvas.master.after(100, self.prepare_and_draw_all)
+
+        # Update the timer:
         self.__update_clock()
+
+        # Set the mainloop to redraw:
+        self.__canvas.master.after(100, self.prepare_and_draw_all)
 
     def play_coin(self, column):
         color = self.__player_colors[self.__current_player]
@@ -201,30 +263,22 @@ class Graphics:
                                                                    x0, y0, z0,
                                                                    i + 1))
 
-    def calc_one_coin(self):
-        coin = Shapes(self.magoz, self.light_source,
-                      "ex12/coin.obj", (0, 0, 0),
-                      '')
-        mat = Matrix3D()
-        mat.setMatMove(1, 1, 1)
-        coin.mull_points(mat)
-
-    def __create_coins_and_column_pointers(self):
+    def __create_coins_and_place_holders(self):
         for i in range(7):
             self.__coins.append([])
             self.__column_points.append([])
             for j in range(6):
-                point = Point3D(self.__board_top.x - 170 + 56 * i,
-                                self.__board_top.y + 40 + 48 * j,
+                point = Point3D(self.__board.get_board_top().x - 170 + 56 * i,
+                                self.__board.get_board_top().y + 40 + 48 * j,
                                 self.__board.get_middle().z)
                 self.__column_points[i].append(point)
 
-                new_coin = Shapes(self.magoz, self.light_source,
+                new_coin = Shapes(self.magoz, self.__light_source,
                                   "ex12/coin.obj", (0, 0, 0),
                                   'item%s%s' % (i, j))
                 self.__coins[i].append(new_coin)
-                new_coin.build_shape(self.__board_top.x - 170 + 56 * i,
-                                     self.__board_top.y,
+                new_coin.build_shape(self.__board.get_board_top().x - 170 + 56 * i,
+                                     self.__board.get_board_top().y,
                                      self.__board.get_middle().z)
 
     def __update_clock(self):
@@ -234,21 +288,19 @@ class Graphics:
             time_now.tm_hour, time_now.tm_min, time_now.tm_sec)
         self.__canvas.tag_raise('time')
         self.__canvas.itemconfig('time', text='TIME: ' + str_time)
-        # self.__canvas.update_idletasks()
-        # self.__canvas.master.after(100, self.__update_clock)
 
     def move_camera(self, **kwargs):
         mat1 = Matrix3D()
         if 'right' in kwargs.keys():
             angle = -math.radians(kwargs['right'])
-            mat1.setMatRotateAxis(*self.__board_top.get_points(),
-                                  *self.__board_bottom.get_points(), angle)
+            mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
+                                  *self.__board.get_board_bottom().get_points(), angle)
             self.__cur_state.mullMatMat(mat1)
 
         if 'left' in kwargs.keys():
             angle = math.radians(kwargs['left'])
-            mat1.setMatRotateAxis(*self.__board_top.get_points(),
-                                  *self.__board_bottom.get_points(), angle)
+            mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
+                                  *self.__board.get_board_bottom().get_points(), angle)
             self.__cur_state.mullMatMat(mat1)
 
         if 'zoom' in kwargs.keys():  # mat1.setMatMove(0, 0, -300)
@@ -267,3 +319,51 @@ class Graphics:
             mat1.setMatRotateXFix(angle,
                                   *self.__center_location.get_points())
             self.__cur_state.mullMatMat(mat1)
+
+
+    # def __key_pressed(self, event):
+    #
+    #     key = event.keysym
+    #     mat1 = Matrix3D()
+    #     mat1.setIdentity()
+    #
+    #     if key == 'plus':
+    #         # mat1.setMatMove(0, 0, -300)
+    #         mat1.setMatScale(*self.__center_location.get_points(),
+    #                          1.1, 1.1, 1.1)
+    #
+    #
+    #     elif key == 'minus':
+    #         # mat1.setMatMove(0, 0, 300)
+    #         mat1.setMatScale(*self.__center_location.get_points(),
+    #                          1 / 1.1, 1 / 1.1, 1 / 1.1)
+    #
+    #
+    #     elif key == 'Up':
+    #         angle = math.pi / 45
+    #         mat1.setMatRotateXFix(angle, *self.__center_location.get_points())
+    #
+    #     elif key == 'Down':
+    #         angle = -math.pi / 45
+    #         mat1.setMatRotateXFix(angle, *self.__center_location.get_points())
+    #
+    #     elif key == 'Left':
+    #         angle = -math.pi / 45
+    #         mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
+    #                               *self.__board.get_board_bottom().get_points(), angle)
+    #
+    #     elif key == 'Right':
+    #         angle = math.pi / 45
+    #         mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
+    #                               *self.__board.get_board_bottom().get_points(), angle)
+    #
+    #     elif key.isnumeric():
+    #         try:
+    #             self.play_coin(int(key))
+    #             self.__cur_state.setIdentity()
+    #         except IndexError:
+    #             pass
+    #         finally:
+    #             return
+    #
+    #     self.__cur_state = mat1

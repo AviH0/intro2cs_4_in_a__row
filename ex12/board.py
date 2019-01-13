@@ -8,10 +8,18 @@ class Board:
                              'boardA')
         self.side_b = Shapes(magoz, light_source, 'ex12/SideB.obj', color,
                              'boardB')
+        self.__board_top = None
+        self.__board_bottom = None
 
     def build_shape(self, x, y, z):
         self.side_a.build_shape(x, y, z)
         self.side_b.build_shape(x, y, z)
+        self.__board_top = Point3D(self.get_middle().x,
+                                   self.get_small_y(),
+                                   self.get_middle().z)
+        self.__board_bottom = Point3D(self.get_middle().x,
+                                      self.get_big_y(),
+                                      self.get_middle().z)
 
     def real_to_guf(self):
         self.side_a.real_to_guf()
@@ -20,6 +28,8 @@ class Board:
     def mull_points(self, mat):
         self.side_a.mull_points(mat)
         self.side_b.mull_points(mat)
+        self.__board_top.mull_point(mat)
+        self.__board_bottom.mull_point(mat)
 
     def convert_and_show_back(self, canvas):
         back = max(self.side_a, self.side_b,
@@ -56,3 +66,9 @@ class Board:
         y = (b1 + b2) / 2
         z = (c1 + c2) / 2
         return Point3D(x, y, z)
+
+    def get_board_top(self):
+        return self.__board_top
+
+    def get_board_bottom(self):
+        return self.__board_bottom

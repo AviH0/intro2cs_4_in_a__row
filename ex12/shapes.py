@@ -1,9 +1,5 @@
-import math
-
 import numpy as np
-from .matrix_3D import Point3D, Matrix3D
-import tkinter
-import timeit
+from .matrix_3D import Point3D
 
 
 class Shapes:
@@ -11,8 +7,8 @@ class Shapes:
         self.__magoz = magoz
         self.light_source = light_source
         self.__color = color
-        self.light_source = self.light_source / np.linalg.norm(
-            self.light_source)
+        self.light_source = self.light_source.get_points() / np.linalg.norm(
+            self.light_source.get_points())
         self.filename = filename
         self.__needs_update = True
         self.__id = id
@@ -38,9 +34,6 @@ class Shapes:
 
     def build_shape(self, x, y, z):
         self.__build_from_file()
-        xl = []
-        yl = []
-        zl = []
         for vertice in self.__vertices:
             xv, yv, zv = vertice.split(' ')
             self.x_real.append(float(xv) + x)
@@ -100,9 +93,9 @@ class Shapes:
         if self.__magoz:
             lst = []
             for i in range(3):
-                d = self.__magoz[2] / (self.__magoz[2] + z[i])
+                d = self.__magoz.z / (self.__magoz.z + z[i])
                 lst.append(
-                    [x[i] * d + self.__magoz[0], y[i] * d + self.__magoz[1]])
+                    [x[i] * d + self.__magoz.x, y[i] * d + self.__magoz.y])
             self.__disp.append(lst)
         else:
             for i in range(3):
