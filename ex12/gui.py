@@ -63,13 +63,16 @@ class Gui:
         canvas = tk.Canvas(self.__root)
         graphics = Graphics(canvas)
         canvas.pack()
+        self.__root.bind('<Key>', lambda event: self.key_pressed(game, graphics, event))
 
-    def key_pressed(self,game,key):
-        if key <0 or key >6:
+    def key_pressed(self, game, graphics, event):
+        if event.char.isnumeric():
+            key = int(event.char)
+        if key < 0 or key > 6:
             pass
         else:
             game.make_move(key)
-            "update graphics here"
+            graphics.play_coin(key)
             if game.get_winner() is not None:
                 "player current player won!"
 

@@ -82,7 +82,6 @@ class Shapes:
             self.__convert(self.x_guf[self.__guf_order[i]],
                            self.y_guf[self.__guf_order[i]],
                            self.z_guf[self.__guf_order[i]])
-        self.__needs_update = False
 
     # self.guf_order = [i for i in range(self.__num_faces)]
 
@@ -153,7 +152,12 @@ class Shapes:
         return Point3D(x, y, z)
 
     def convert_and_show(self, canvas):
+
         tag = self.__id
+        if not self.__needs_update:
+            canvas.tag_raise(tag)
+            return
+
         canvas.delete(tag)
 
         for i in range(self.__num_faces):
@@ -165,6 +169,7 @@ class Shapes:
                 color = self.__colors[self.__guf_order[i]]
                 canvas.create_polygon(self.__disp[self.__guf_order[i]],
                                       fill=color, tag=tag)
+        self.__needs_update = False
 
     def mull_points(self, matrix):
         if matrix.check_identity():

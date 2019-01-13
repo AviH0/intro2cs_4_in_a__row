@@ -81,7 +81,7 @@ class Graphics:
         self.__canvas = canvas
         self.__canvas.configure(height=self.HEIGHT, width=self.WIDTH,
                                 bg=self.BACKGROUND_COLOR)
-        self.__canvas.master.bind('<Key>', self.__key_pressed)
+        # self.__canvas.master.bind('<Key>', self.__key_pressed)
 
         # Environment points:
         self.magoz = Point3D(*self.MAGOZ)
@@ -278,7 +278,7 @@ class Graphics:
 
         # Set the mainloop to repeat num_steps times:
         if i < num_steps:
-            self.__canvas.master.after(80,
+            self.__canvas.master.after(10,
                                        lambda: self.__animate_coin(num_steps,
                                                                    coin,
                                                                    dx, dy, dz,
@@ -313,7 +313,7 @@ class Graphics:
         self.__canvas.itemconfig(self.TIMER_TAG,
                                  text=self.TIMER_TEXT + str_time)
 
-    def mark_victory(self, coords, color):
+    def mark_victory(self, coords, color=WALL_COLOR):
         for coord in coords:
             self.__canvas.itemconfig(self.COIN_TAG % coord, fill=color)
 
