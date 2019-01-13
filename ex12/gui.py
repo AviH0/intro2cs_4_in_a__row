@@ -7,7 +7,6 @@ class Gui:
 
     def __init__(self):
         self.__root = tk.Tk()
-
         self.__load_rescources()
         self.__welcome()
         self.__root.mainloop()
@@ -60,6 +59,7 @@ class Gui:
             slave.destroy()
         game = Game()
 
+
         canvas = tk.Canvas(self.__root)
         graphics = Graphics(canvas)
         canvas.pack()
@@ -68,17 +68,19 @@ class Gui:
     def key_pressed(self, game, graphics, event):
         key = event.keysym
         if event.char.isnumeric():
-            key = int(event.char)
+            key = int(event.char) - 1
             if key < 0 or key > 6:
                 pass
             else:
                 try:
                     game.make_move(key)
                     graphics.play_coin(key)
-                    if game.get_winner() is not None:
+                    if game.get_winner():
                         "player current player won!"
+                        print(game.get_winner())
                         self.__root.unbind('<Key>')
                         graphics.victory()
+                        graphics.display_message('Game Over!', 'green')
                 except ValueError:
                     graphics.display_message('--Illegal Move!--', 'red')
 
@@ -91,8 +93,8 @@ class Gui:
         if key == 'Down':
             graphics.move_camera(down=5)
         if key == 'plus':
-            graphics.move_camera(zoom=1.5)
+            graphics.move_camera(zoom=1.1)
         if key == 'minus':
-            graphics.move_camera(zoom=1/1.5)
+            graphics.move_camera(zoom=1/1.1)
 
 

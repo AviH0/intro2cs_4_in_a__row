@@ -3,6 +3,7 @@ from .board import Board
 from .shapes import Shapes
 from .table import Table
 from .room import Room
+import tkinter
 import math
 import time
 
@@ -25,15 +26,18 @@ class Graphics:
     TIMER_TAG = 'Timer'
     COIN_TAG = 'item%s%s'
     MSG_TAG = 'Message'
+    HELP_TAG = 'Help'
 
     # Game:
     NUM_ROWS = 6
     NUM_COLUMNS = 7
 
     # Canvas:
-    HEIGHT = 900
-    WIDTH = 900
+    temp = tkinter.Tk()
+    HEIGHT = temp.winfo_screenheight() - 100
+    WIDTH = temp.winfo_screenwidth() - 10
     BACKGROUND_COLOR = 'grey'
+    temp.destroy()
 
     # Points:
     DEPTH = 5000
@@ -58,7 +62,7 @@ class Graphics:
                     CENTER_LOCATION[2] + -1000
 
     PLAYER_DISPLAY_OFFSET = -15, -25, -25
-
+    HELP_LOCATION = 450, HEIGHT - 50
     MSG_LOCATION = WIDTH / 2, 500
     TIMER_LOCATION = 170, 30
 
@@ -75,17 +79,27 @@ class Graphics:
     # Fonts:
     TIMER_FONT = "Century 25 bold"
     MSG_FONT = "Calibri 70 bold"
+    HELP_FONT = "Calibri 15 bold"
 
     # Strings:
     TIMER_TEXT = "TIME: "
     TIME_TEXT = '%02d : %02d : %02d'
+    HELP_TEXT = 'Use numbers 1-7 to make a move, `-` and `+` to zoom and the' \
+                ' directional keys to move the camera'
 
     def __init__(self, canvas, player_1_color=RED, player_2_color=GREEN):
 
         # Configure Canvas:
         self.__canvas = canvas
+        # self.HEIGHT = self.__canvas.master.winfo_screenheight()
+        # self.WIDTH = self.__canvas.master.winfo_screenwidth()
         self.__canvas.configure(height=self.HEIGHT, width=self.WIDTH,
                                 bg=self.BACKGROUND_COLOR)
+
+        self.__canvas.master.geometry(
+            "%dx%d%+d%+d" % (self.WIDTH, self.HEIGHT, 0, 0))
+        self.__canvas.master.resizable(height=False, width=False)
+
         # self.__canvas.master.bind('<Key>', self.__key_pressed)
 
         # Environment points:
@@ -126,6 +140,11 @@ class Graphics:
         self.__canvas.create_text(*self.TIMER_LOCATION, text=self.TIMER_TEXT,
                                   fill=self.RED,
                                   font=self.TIMER_FONT, tags=self.TIMER_TAG)
+
+        # Create the help inforamtion display:
+        self.__canvas.create_text(*self.HELP_LOCATION, text=self.HELP_TEXT,
+                                  fill=self.GREEN,
+                                  font=self.HELP_FONT, tags=self.MSG_TAG)
 
         # Make the first call to redraw:
         self.prepare_and_draw_all()
@@ -186,12 +205,16 @@ class Graphics:
     def __first_transformation(self):
         self.__cur_state = Matrix3D()
         temp = Matrix3D()
-        # temp.setMatScale(*self.__center_location.get_points(), 1.5,
-        #                  1.5, 1.5)
+        temp.setMatScale(*self.__center_location.get_points(), 1.5,
+                         1.5, 1.5)
         self.__cur_state.mullMatMat(temp)
         temp.setMatRotateXFix(math.pi / 45,
                               *self.__center_location.get_points())
         self.__cur_state.mullMatMat(temp)
+        mat = Matrix3D()
+        mat.setMatScale(*self.__floor.get_middle().get_points(), 2, 2, 2)
+        self.__floor.mull_points(mat)
+        self.__room.mull_points(mat)
 
     def prepare_and_draw_all(self):
 
@@ -213,11 +236,12 @@ class Graphics:
         # Draw all the relevant shapes for the current view:
         self.__room.convert_and_show(self.__canvas, self.__center_location.z)
 
+        self.__floor.convert_and_show(self.__canvas)
+
         if self.__text.get_middle().z > self.__board.get_middle().z:
             self.__text.convert_and_show(self.__canvas)
 
-        if self.__floor.get_middle().z > self.__board.get_board_top().z:
-            self.__floor.convert_and_show(self.__canvas)
+
 
         if self.__board.get_board_top().z < self.__table.get_middle().z:
             self.__table.convert_and_show(self.__canvas)
@@ -232,6 +256,9 @@ class Graphics:
 
         if self.__board.get_board_top().z >= self.__table.get_middle().z:
             self.__table.convert_and_show(self.__canvas)
+
+        if self.__floor.get_middle().z < self.__room.get_middle().z:
+            self.__canvas.tag_raise(self.FLOOR_TAG)
 
         # Reset the matrix:
         self.__cur_state.setIdentity()
@@ -256,9 +283,9 @@ class Graphics:
     def victory(self):
         self.__current_player ^= 1
         player_mat = Matrix3D()
-        player_mat.setMatScale(*self.__player.get_middle().get_points(), 1.1, 1.1, 1.1)
+        player_mat.setMatScale(*self.__player.get_middle().get_points(), 1.1,
+                               1.1, 1.1)
         self.__animate_player(player_mat)
-
 
     def __animate_player(self, mat, i=1):
 
@@ -266,14 +293,17 @@ class Graphics:
         self.__players[self.__current_player].mull_points(mat)
         if i < 9:
             temp = Matrix3D()
-            temp.setMatRotateZFix(math.radians(10 * ((-1)**i)/2*i), *self.__player.get_middle().get_points())
+            temp.setMatRotateZFix(math.radians(10 * ((-1) ** i) / 2 * i),
+                                  *self.__player.get_middle().get_points())
             self.__players[self.__current_player].mull_points(temp)
             self.__player.mull_points(temp)
-            self.__canvas.master.after(100, lambda: self.__animate_player(mat, i+1))
+            self.__canvas.master.after(100, lambda: self.__animate_player(mat,
+                                                                          i + 1))
         elif i < 49:
-            mat.setMatRotateZFix(math.pi/10, *self.__player.get_middle().get_points())
-            self.__canvas.master.after(50, lambda: self.__animate_player(mat, i+1))
-
+            mat.setMatRotateYFix(math.pi / 10,
+                                 *self.__player.get_middle().get_points())
+            self.__canvas.master.after(50, lambda: self.__animate_player(mat,
+                                                                         i + 1))
 
     def display_message(self, msg, color=RED):
         self.__canvas.create_text(*self.MSG_LOCATION, text=msg,
@@ -371,7 +401,9 @@ class Graphics:
                                   angle)
             self.__cur_state.mullMatMat(mat1)
 
-        if 'zoom' in kwargs.keys():  # mat1.setMatMove(0, 0, -300)
+        if 'zoom' in kwargs.keys():
+            if self.__floor.get_big_z() - self.__floor.get_small_z() < 5000 and kwargs['zoom'] < 1:
+                return
             mat1.setMatScale(*self.__center_location.get_points(),
                              kwargs['zoom'], kwargs['zoom'], kwargs['zoom'])
             self.__cur_state.mullMatMat(mat1)

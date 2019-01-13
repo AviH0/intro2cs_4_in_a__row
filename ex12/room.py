@@ -1,5 +1,5 @@
 from .shapes import Shapes
-from .matrix_3D import Point3D
+from .matrix_3D import Point3D, Matrix3D
 
 
 class Room:
@@ -44,4 +44,9 @@ class Room:
         for wall in self.__walls:
             if wall.get_middle().z > camera_z:
                 wall.convert_and_show(canvas)
+            else:
+                wall.remove(canvas)
         self.__ceiling.convert_and_show(canvas)
+
+    def get_middle(self):
+        return self.__ceiling.get_middle()

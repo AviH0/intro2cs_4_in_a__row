@@ -11,7 +11,7 @@ class Shapes:
             self.light_source.get_points())
         self.filename = filename
         self.__needs_update = True
-        self.__id = id
+        self.__tag = id
         self.__num_vertices = 0
         self.__num_faces = 0
         self.x_real = []  # [0 for i in range(num_vertices * 2)]
@@ -151,9 +151,12 @@ class Shapes:
         z = (self.get_big_z() + self.get_small_z()) / 2
         return Point3D(x, y, z)
 
+    def remove(self, canvas):
+        canvas.delete(self.__tag)
+
     def convert_and_show(self, canvas):
 
-        tag = self.__id
+        tag = self.__tag
         if not self.__needs_update:
             canvas.tag_raise(tag)
             return
