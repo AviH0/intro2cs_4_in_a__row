@@ -3,11 +3,20 @@ from .matrix_3D import Point3D
 
 
 class Board:
+
+    # Files:
+    SIDE_A_FILE = 'ex12/SideA.obj'
+    SIDE_B_FILE = 'ex12/SideB.obj'
+
+    # Tags:
+    SIDE_A_TAG = 'boardA'
+    SIDE_B_TAG = 'boardB'
+
     def __init__(self, magoz, light_source, color):
-        self.side_a = Shapes(magoz, light_source, 'ex12/SideA.obj', color,
-                             'boardA')
-        self.side_b = Shapes(magoz, light_source, 'ex12/SideB.obj', color,
-                             'boardB')
+        self.side_a = Shapes(magoz, light_source, self.SIDE_A_FILE, color,
+                             self.SIDE_A_TAG)
+        self.side_b = Shapes(magoz, light_source, self.SIDE_B_FILE, color,
+                             self.SIDE_B_TAG)
         self.__board_top = None
         self.__board_bottom = None
 
@@ -41,22 +50,22 @@ class Board:
                     key=lambda value: value.get_big_z())
         front.convert_and_show(canvas)
 
-    def get_big_x(self, x=None):
+    def get_big_x(self):
         return max(self.side_a.get_big_x(), self.side_b.get_big_x())
 
-    def get_small_x(self, x=None):
+    def get_small_x(self):
         return min(self.side_a.get_small_x(), self.side_b.get_small_x())
 
-    def get_big_y(self, x=None):
+    def get_big_y(self):
         return max(self.side_a.get_big_y(), self.side_b.get_big_y())
 
-    def get_small_y(self, x=None):
+    def get_small_y(self):
         return min(self.side_a.get_small_y(), self.side_b.get_small_y())
 
-    def get_big_z(self, x=None):
+    def get_big_z(self):
         return max(self.side_a.get_big_z(), self.side_b.get_big_z())
 
-    def get_small_z(self, x=None):
+    def get_small_z(self):
         return min(self.side_a.get_small_z(), self.side_b.get_small_z())
 
     def get_middle(self):
