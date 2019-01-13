@@ -6,7 +6,7 @@ from .graphics import Graphics
 class Gui:
 
     def __init__(self):
-        self.__root = tk.Tk(screenName='Connect Four')
+        self.__root = tk.Tk()
 
         self.__load_rescources()
         self.__welcome()
@@ -66,14 +66,33 @@ class Gui:
         self.__root.bind('<Key>', lambda event: self.key_pressed(game, graphics, event))
 
     def key_pressed(self, game, graphics, event):
+        key = event.keysym
         if event.char.isnumeric():
             key = int(event.char)
-        if key < 0 or key > 6:
-            pass
-        else:
-            game.make_move(key)
-            graphics.play_coin(key)
-            if game.get_winner() is not None:
-                "player current player won!"
+            if key < 0 or key > 6:
+                pass
+            else:
+                try:
+                    game.make_move(key)
+                    graphics.play_coin(key)
+                    if game.get_winner() is not None:
+                        "player current player won!"
+                        self.__root.unbind('<Key>')
+                        graphics.victory()
+                except ValueError:
+                    graphics.display_message('--Illegal Move!--', 'red')
+
+        if key == 'Right':
+            graphics.move_camera(right=5)
+        if key == 'Left':
+            graphics.move_camera(left=5)
+        if key == 'Up':
+            graphics.move_camera(up=5)
+        if key == 'Down':
+            graphics.move_camera(down=5)
+        if key == 'plus':
+            graphics.move_camera(zoom=1.5)
+        if key == 'minus':
+            graphics.move_camera(zoom=1/1.5)
 
 

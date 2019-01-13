@@ -24,6 +24,7 @@ class Graphics:
     NUMBER_2_TAG = 'Number_2'
     TIMER_TAG = 'Timer'
     COIN_TAG = 'item%s%s'
+    MSG_TAG = 'Message'
 
     # Game:
     NUM_ROWS = 6
@@ -40,7 +41,7 @@ class Graphics:
     CENTER_LOCATION = 0, 0, DEPTH
     LIGHT_SOURCE = 500, 500, 4900
 
-    # Location:
+    # Locations:
     BOARD_LOCATION = CENTER_LOCATION[0] + 0, CENTER_LOCATION[1] + 0, \
                      CENTER_LOCATION[2] + 200
 
@@ -58,6 +59,9 @@ class Graphics:
 
     PLAYER_DISPLAY_OFFSET = -15, -25, -25
 
+    MSG_LOCATION = WIDTH / 2, 500
+    TIMER_LOCATION = 170, 30
+
     # Colors:
 
     TABLE_COLOR = 'darkorange4'
@@ -70,6 +74,7 @@ class Graphics:
 
     # Fonts:
     TIMER_FONT = "Century 25 bold"
+    MSG_FONT = "Calibri 70 bold"
 
     # Strings:
     TIMER_TEXT = "TIME: "
@@ -118,7 +123,8 @@ class Graphics:
         self.__time = time.time()
 
         # Create the Timer:
-        self.__canvas.create_text(170, 30, text=self.TIMER_TEXT, fill=self.RED,
+        self.__canvas.create_text(*self.TIMER_LOCATION, text=self.TIMER_TEXT,
+                                  fill=self.RED,
                                   font=self.TIMER_FONT, tags=self.TIMER_TAG)
 
         # Make the first call to redraw:
@@ -233,8 +239,11 @@ class Graphics:
         # Update the timer:
         self.__update_clock()
 
+        # Make sure the message is visible:
+        self.__canvas.tag_raise(self.MSG_TAG)
+
         # Set the mainloop to redraw:
-        self.__canvas.master.after(100, self.prepare_and_draw_all)
+        self.__canvas.master.after(50, self.prepare_and_draw_all)
 
     def play_coin(self, column):
         color = self.__player_colors[self.__current_player]
@@ -243,6 +252,35 @@ class Graphics:
         self.__active_coins.append(coin_to_play)
         self.__current_player ^= 1
         self.__place_coin(coin_to_play, column)
+
+    def victory(self):
+        self.__current_player ^= 1
+        player_mat = Matrix3D()
+        player_mat.setMatScale(*self.__player.get_middle().get_points(), 1.1, 1.1, 1.1)
+        self.__animate_player(player_mat)
+
+
+    def __animate_player(self, mat, i=1):
+
+        self.__player.mull_points(mat)
+        self.__players[self.__current_player].mull_points(mat)
+        if i < 9:
+            temp = Matrix3D()
+            temp.setMatRotateZFix(math.radians(10 * ((-1)**i)/2*i), *self.__player.get_middle().get_points())
+            self.__players[self.__current_player].mull_points(temp)
+            self.__player.mull_points(temp)
+            self.__canvas.master.after(100, lambda: self.__animate_player(mat, i+1))
+        elif i < 49:
+            mat.setMatRotateZFix(math.pi/10, *self.__player.get_middle().get_points())
+            self.__canvas.master.after(50, lambda: self.__animate_player(mat, i+1))
+
+
+    def display_message(self, msg, color=RED):
+        self.__canvas.create_text(*self.MSG_LOCATION, text=msg,
+                                  font=self.MSG_FONT, tag=self.MSG_TAG,
+                                  fill=color)
+        self.__canvas.master.after(2000,
+                                   lambda: self.__canvas.delete(self.MSG_TAG))
 
     def __place_coin(self, coin, column):
         point = self.__column_points[column].pop()
@@ -278,7 +316,7 @@ class Graphics:
 
         # Set the mainloop to repeat num_steps times:
         if i < num_steps:
-            self.__canvas.master.after(10,
+            self.__canvas.master.after(40,
                                        lambda: self.__animate_coin(num_steps,
                                                                    coin,
                                                                    dx, dy, dz,
@@ -320,14 +358,14 @@ class Graphics:
     def move_camera(self, **kwargs):
         mat1 = Matrix3D()
         if 'right' in kwargs.keys():
-            angle = -math.radians(kwargs['right'])
+            angle = math.radians(kwargs['right'])
             mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
                                   *self.__board.get_board_bottom().get_points(),
                                   angle)
             self.__cur_state.mullMatMat(mat1)
 
         if 'left' in kwargs.keys():
-            angle = math.radians(kwargs['left'])
+            angle = -math.radians(kwargs['left'])
             mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
                                   *self.__board.get_board_bottom().get_points(),
                                   angle)
@@ -339,13 +377,13 @@ class Graphics:
             self.__cur_state.mullMatMat(mat1)
 
         if 'up' in kwargs.keys():
-            angle = -math.radians(kwargs['up'])
+            angle = math.radians(kwargs['up'])
             mat1.setMatRotateXFix(angle,
                                   *self.__center_location.get_points())
             self.__cur_state.mullMatMat(mat1)
 
         if 'down' in kwargs.keys():
-            angle = math.radians(kwargs['down'])
+            angle = -math.radians(kwargs['down'])
             mat1.setMatRotateXFix(angle,
                                   *self.__center_location.get_points())
             self.__cur_state.mullMatMat(mat1)
