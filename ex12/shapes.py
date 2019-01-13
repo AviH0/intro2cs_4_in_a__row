@@ -40,7 +40,7 @@ class Shapes:
             self.y_real.append(float(yv) + y)
             self.z_real.append(float(zv) + z)
         self.__guf_order = [i for i in range(len(self.__faces))]
-        self.real_to_guf()
+        # self.real_to_guf()
         # self.__build_normals()
 
     def real_to_guf(self):
