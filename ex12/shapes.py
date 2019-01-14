@@ -47,8 +47,9 @@ class Shapes:
         :param x: The x coordinate to build in.
         :param y: The y coordinate to build in.
         :param z: The z oordinate to build in.
-        :return:
         """
+
+        # Build the vertice and and faces list from the file:
         self.__build_from_file()
         for vertice in self.__vertices:
             xv, yv, zv = vertice.split(' ')
