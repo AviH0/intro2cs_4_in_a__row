@@ -3,7 +3,16 @@ from .matrix_3D import Point3D
 
 
 class Shapes:
-    def __init__(self, magoz, light_source, filename, color, id):
+    def __init__(self, magoz, light_source, filename, color, tag):
+        """
+        Create an instance of the class shape.
+        :param magoz: A Point3D object with the perspective location.
+        :param light_source:A Point3D object with the light-source location.
+        :param filename: A string with the past to an .OBJ file with a 3D
+                         object.
+        :param color:
+        :param tag:
+        """
         self.__magoz = magoz
         self.light_source = light_source
         self.__color = color
@@ -11,12 +20,12 @@ class Shapes:
             self.light_source.get_points())
         self.filename = filename
         self.__needs_update = True
-        self.__tag = id
+        self.__tag = tag
         self.__num_vertices = 0
         self.__num_faces = 0
-        self.x_real = []  # [0 for i in range(num_vertices * 2)]
-        self.y_real = []  # [0 for i in range(num_vertices * 2)]
-        self.z_real = []  # [0 for i in range(num_vertices * 2)]
+        self.x_real = []
+        self.y_real = []
+        self.z_real = []
 
         self.__guf_order = []
         self.x_guf = []  # [[0 for i in range(num_vertices)] for j in
