@@ -3,6 +3,9 @@ from .matrix_3D import Point3D
 
 
 class Shapes:
+
+    LIGHT_SOURCE_PERCENTAGE = 0.2
+
     def __init__(self, magoz, light_source, filename, color, tag):
         """
         Create an instance of the class shape.
@@ -49,20 +52,25 @@ class Shapes:
         :param z: The z oordinate to build in.
         """
 
-        # Build the vertice and and faces list from the file:
+        # Build the vertex and and faces list from the file:
         self.__build_from_file()
-        for vertice in self.__vertices:
-            xv, yv, zv = vertice.split(' ')
+        for vertex in self.__vertices:
+            xv, yv, zv = vertex.split(' ')
             self.x_vertices.append(float(xv) + x)
             self.y_vertices.append(float(yv) + y)
             self.z_vertices.append(float(zv) + z)
         self.__faces_order = [i for i in range(len(self.__faces))]
-        # self.real_to_guf()
-        # self.__build_normals()
 
     def real_to_guf(self):
+        """
+        Update the faces lists from the vertices lists
+        """
+
+        # If there is nothing to update, return
         if not self.__needs_update:
             return
+
+        # Empty the lists and refill them:
         self.x_face = []
         self.y_face = []
         self.z_face = []
@@ -80,18 +88,25 @@ class Shapes:
             z = [self.z_vertices[a - 1], self.z_vertices[b - 1],
                  self.z_vertices[c - 1]]
 
+            # Add the current face to the lists:
             self.x_face.append(x)
             self.y_face.append(y)
             self.z_face.append(z)
+
+            # Calculate this face's normal:
             n = np.cross((x[0], y[0], z[0]), (x[1], y[1], z[1]))
             n = n / np.linalg.norm(n)
+            # Calculate the shading factor for this face:
             shade = np.dot((n[0], n[1], n[2]), self.light_source)
-            LIGHT_SOURCE_STRENGTH = 0.2
+            # Calculate the RGB values for this face's color and add them to
+            # the list:
+            factor = self.LIGHT_SOURCE_PERCENTAGE
             self.__colors.append(
-                "#%04x%04x%04x" % (int(red - 0.5 * abs(shade) * red),
-                                   int(green - 0.5 * abs(shade) * green),
-                                   int(blue - 0.5 * abs(shade) * blue)))
+                "#%04x%04x%04x" % (int(red - factor * abs(shade) * red),
+                                   int(green - factor * abs(shade) * green),
+                                   int(blue - factor * abs(shade) * blue)))
 
+        # Set the order of display for all the faces:
         self.__faces_order.sort(key=lambda value: min(self.z_face[value]),
                                 reverse=True)
         self.__disp = []
@@ -100,12 +115,21 @@ class Shapes:
                            self.y_face[self.__faces_order[i]],
                            self.z_face[self.__faces_order[i]])
 
-    # self.guf_order = [i for i in range(self.__num_faces)]
-
     def __check(self, x1, y1, x2, y2, x3, y3):
+        """
+        Check if a face is facing towards the camera or not.
+        """
+
         return x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2) > 0
 
     def __convert(self, x, y, z):
+        """
+
+        :param x:
+        :param y:
+        :param z:
+        :return:
+        """
         if self.__magoz:
             lst = []
             for i in range(3):
