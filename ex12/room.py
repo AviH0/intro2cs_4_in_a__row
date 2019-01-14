@@ -43,10 +43,10 @@ class Room:
     def convert_and_show(self, canvas, camera_z):
         for wall in self.__walls:
             if wall.get_middle().z > camera_z:
-                wall.convert_and_show(canvas)
+                wall.draw(canvas)
             else:
                 wall.remove(canvas)
-        self.__ceiling.convert_and_show(canvas)
+        self.__ceiling.draw(canvas)
 
     def get_middle(self):
         return self.__ceiling.get_middle()

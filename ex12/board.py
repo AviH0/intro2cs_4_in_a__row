@@ -43,12 +43,12 @@ class Board:
     def convert_and_show_back(self, canvas):
         back = max(self.side_a, self.side_b,
                    key=lambda value: value.get_big_z())
-        back.convert_and_show(canvas)
+        back.draw(canvas)
 
     def convert_and_show_front(self, canvas):
         front = min(self.side_a, self.side_b,
                     key=lambda value: value.get_big_z())
-        front.convert_and_show(canvas)
+        front.draw(canvas)
 
     def get_big_x(self):
         return max(self.side_a.get_big_x(), self.side_b.get_big_x())
