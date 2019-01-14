@@ -263,7 +263,7 @@ class Shapes:
             return
 
         # Multiply and set the flag to update:
-        self.x_vertices, self.y_vertices, self.z_vertices = matrix.mullAllPoints(
+        self.x_vertices, self.y_vertices, self.z_vertices = matrix.mull_all_points(
             self.x_vertices,
             self.y_vertices,
             self.z_vertices,

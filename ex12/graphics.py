@@ -234,19 +234,19 @@ class Graphics:
         # Create a matrix with a scaling transformation and mull it with the
         # main matrix:
         temp = Matrix3D()
-        temp.setMatScale(*self.__center_location.get_points(), 1.5,
-                         1.5, 1.5)
-        self.__cur_state.mullMatMat(temp)
+        temp.set_mat_scale(*self.__center_location.get_points(), 1.5,
+                           1.5, 1.5)
+        self.__cur_state.mull_mat_mat(temp)
 
         # Create a matrix with a rotation transformation and mull it with the
         # main matrix:
-        temp.setMatRotateXFix(math.pi / 45,
-                              *self.__center_location.get_points())
-        self.__cur_state.mullMatMat(temp)
+        temp.set_mat_rotate_x_fix(math.pi / 45,
+                                  *self.__center_location.get_points())
+        self.__cur_state.mull_mat_mat(temp)
 
         # Scale up the room and floor:
         mat = Matrix3D()
-        mat.setMatScale(*self.__floor.get_middle().get_points(), 2.5, 2.5, 2.5)
+        mat.set_mat_scale(*self.__floor.get_middle().get_points(), 2.5, 2.5, 2.5)
         self.__floor.mull_points(mat)
         self.__room.mull_points(mat)
 
@@ -305,7 +305,7 @@ class Graphics:
         #     self.__floor.remove(self.__canvas)
 
         # Reset the matrix:
-        self.__cur_state.setIdentity()
+        self.__cur_state.set_identity()
 
         # Update the timer:
         self.__update_clock()
@@ -327,8 +327,8 @@ class Graphics:
     def victory(self):
         self.__current_player = self.__players[self.__players.index(self.__current_player) ^ 1]
         player_mat = Matrix3D()
-        player_mat.setMatScale(*self.__player.get_middle().get_points(), 1.1,
-                               1.1, 1.1)
+        player_mat.set_mat_scale(*self.__player.get_middle().get_points(), 1.1,
+                                 1.1, 1.1)
         self.__animate_player(player_mat)
 
     def __animate_player(self, mat, i=1):
@@ -337,15 +337,15 @@ class Graphics:
         self.__current_player.mull_points(mat)
         if i < 9:
             temp = Matrix3D()
-            temp.setMatRotateZFix(math.radians(10 * ((-1) ** i) / 2 * i),
-                                  *self.__player.get_middle().get_points())
+            temp.set_mat_rotate_z_fix(math.radians(10 * ((-1) ** i) / 2 * i),
+                                      *self.__player.get_middle().get_points())
             self.__current_player.mull_points(temp)
             self.__player.mull_points(temp)
             self.__canvas.master.after(100, lambda: self.__animate_player(mat,
                                                                           i + 1))
         elif i < 49:
-            mat.setMatRotateYFix(math.pi / 10,
-                                 *self.__player.get_middle().get_points())
+            mat.set_mat_rotate_y_fix(math.pi / 10,
+                                     *self.__player.get_middle().get_points())
             self.__canvas.master.after(50, lambda: self.__animate_player(mat,
                                                                          i + 1))
 
@@ -378,7 +378,7 @@ class Graphics:
         ddz = 0.5 * az * i ** 2
 
         # Set the matrix to move:
-        matrix.setMatMove(ddx - x0, ddy - y0, ddz - z0)
+        matrix.set_mat_move(ddx - x0, ddy - y0, ddz - z0)
 
         # Save the current movement factors for the next iteration:
         x0 = ddx
@@ -433,38 +433,38 @@ class Graphics:
         mat1 = Matrix3D()
         if 'right' in kwargs.keys():
             angle = math.radians(kwargs['right'])
-            mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
-                                  *self.__board.get_board_bottom().get_points(),
-                                  angle)
-            self.__cur_state.mullMatMat(mat1)
+            mat1.set_mat_rotate_axis(*self.__board.get_board_top().get_points(),
+                                     *self.__board.get_board_bottom().get_points(),
+                                     angle)
+            self.__cur_state.mull_mat_mat(mat1)
 
         if 'left' in kwargs.keys():
             angle = -math.radians(kwargs['left'])
-            mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
-                                  *self.__board.get_board_bottom().get_points(),
-                                  angle)
-            self.__cur_state.mullMatMat(mat1)
+            mat1.set_mat_rotate_axis(*self.__board.get_board_top().get_points(),
+                                     *self.__board.get_board_bottom().get_points(),
+                                     angle)
+            self.__cur_state.mull_mat_mat(mat1)
 
         if 'zoom' in kwargs.keys():
             if self.__board.get_big_y() - self.__board.get_small_y() < 350 and \
                     kwargs['zoom'] < 1:
                 return
-            mat1.setMatScale(*self.__center_location.get_points(),
-                             kwargs['zoom'], kwargs['zoom'], kwargs['zoom'])
-            self.__cur_state.mullMatMat(mat1)
+            mat1.set_mat_scale(*self.__center_location.get_points(),
+                               kwargs['zoom'], kwargs['zoom'], kwargs['zoom'])
+            self.__cur_state.mull_mat_mat(mat1)
 
         if 'up' in kwargs.keys():
             if self.__floor.get_big_z() - self.__floor.get_small_z() < 1000:
                 return
             angle = math.radians(kwargs['up'])
-            mat1.setMatRotateXFix(angle,
-                                  *self.__center_location.get_points())
-            self.__cur_state.mullMatMat(mat1)
+            mat1.set_mat_rotate_x_fix(angle,
+                                      *self.__center_location.get_points())
+            self.__cur_state.mull_mat_mat(mat1)
 
         if 'down' in kwargs.keys():
             if self.__floor.get_big_y() - self.__floor.get_small_y() < 1000:
                 return
             angle = -math.radians(kwargs['down'])
-            mat1.setMatRotateXFix(angle,
-                                  *self.__center_location.get_points())
-            self.__cur_state.mullMatMat(mat1)
+            mat1.set_mat_rotate_x_fix(angle,
+                                      *self.__center_location.get_points())
+            self.__cur_state.mull_mat_mat(mat1)
