@@ -32,8 +32,13 @@ class Graphics:
     NUM_ROWS = 6
     NUM_COLUMNS = 7
 
-    # Canvas:
+    # Workaround to get the screen dimensions without instantiating the class:
     temp = tkinter.Tk()
+    temp.withdraw()
+    temp.after(1, temp.quit)
+    temp.mainloop()
+
+    # Canvas:
     HEIGHT = temp.winfo_screenheight() - 100
     WIDTH = temp.winfo_screenwidth() - 10
     BACKGROUND_COLOR = 'grey'
@@ -91,8 +96,6 @@ class Graphics:
 
         # Configure Canvas:
         self.__canvas = canvas
-        # self.HEIGHT = self.__canvas.master.winfo_screenheight()
-        # self.WIDTH = self.__canvas.master.winfo_screenwidth()
         self.__canvas.configure(height=self.HEIGHT, width=self.WIDTH,
                                 bg=self.BACKGROUND_COLOR)
 
@@ -100,7 +103,6 @@ class Graphics:
             "%dx%d%+d%+d" % (self.WIDTH, self.HEIGHT, 0, 0))
         self.__canvas.master.resizable(height=False, width=False)
 
-        # self.__canvas.master.bind('<Key>', self.__key_pressed)
 
         # Environment points:
         self.magoz = Point3D(*self.MAGOZ)
@@ -420,51 +422,3 @@ class Graphics:
                                   *self.__center_location.get_points())
             self.__cur_state.mullMatMat(mat1)
 
-    def __key_pressed(self, event):
-
-        key = event.keysym
-        mat1 = Matrix3D()
-        mat1.setIdentity()
-
-        if key == 'plus':
-            # mat1.setMatMove(0, 0, -300)
-            mat1.setMatScale(*self.__center_location.get_points(),
-                             1.1, 1.1, 1.1)
-
-
-        elif key == 'minus':
-            # mat1.setMatMove(0, 0, 300)
-            mat1.setMatScale(*self.__center_location.get_points(),
-                             1 / 1.1, 1 / 1.1, 1 / 1.1)
-
-
-        elif key == 'Up':
-            angle = math.pi / 45
-            mat1.setMatRotateXFix(angle, *self.__center_location.get_points())
-
-        elif key == 'Down':
-            angle = -math.pi / 45
-            mat1.setMatRotateXFix(angle, *self.__center_location.get_points())
-
-        elif key == 'Left':
-            angle = -math.pi / 45
-            mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
-                                  *self.__board.get_board_bottom().get_points(),
-                                  angle)
-
-        elif key == 'Right':
-            angle = math.pi / 45
-            mat1.setMatRotateAxis(*self.__board.get_board_top().get_points(),
-                                  *self.__board.get_board_bottom().get_points(),
-                                  angle)
-
-        elif key.isnumeric():
-            try:
-                self.play_coin(int(key))
-                self.__cur_state.setIdentity()
-            except IndexError:
-                pass
-            finally:
-                return
-
-        self.__cur_state = mat1
