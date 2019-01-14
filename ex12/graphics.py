@@ -275,11 +275,11 @@ class Graphics:
         # Draw all the relevant shapes in the correct order for the current
         # view:
         self.__room.convert_and_show(self.__canvas, self.__center_location.z)
-        self.__floor.convert_and_show(self.__canvas)
+        self.__floor.draw(self.__canvas)
 
         # If the text is behind the board, show it:
         if self.__text.get_middle().z > self.__board.get_middle().z:
-            self.__text.convert_and_show(self.__canvas)
+            self.__text.draw(self.__canvas)
 
         # If the table is tilted forwards, show it now before the board:
         if self.__board.get_board_top().z < self.__table.get_middle().z:
@@ -288,12 +288,12 @@ class Graphics:
         # Show the back of the board, then the coins, and then the front side:
         self.__board.convert_and_show_back(self.__canvas)
         for coin in self.__active_coins:
-            coin.convert_and_show(self.__canvas)
+            coin.draw(self.__canvas)
         self.__board.convert_and_show_front(self.__canvas)
 
         # Show the current player display
-        self.__player.convert_and_show(self.__canvas)
-        self.__current_player.convert_and_show(self.__canvas)
+        self.__player.draw(self.__canvas)
+        self.__current_player.draw(self.__canvas)
 
         # If the table is tilted backwards, show it now:
         if self.__board.get_board_top().z >= self.__table.get_middle().z:

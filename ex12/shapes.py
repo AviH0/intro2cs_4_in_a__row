@@ -124,12 +124,12 @@ class Shapes:
 
     def __convert(self, x, y, z):
         """
-
-        :param x:
-        :param y:
-        :param z:
-        :return:
+        Convert the values for a face into 2-d coords for display.
+        :param x: The face's x coords.
+        :param y: The face's y coords.
+        :param z: The face's z coords.
         """
+        # If the perspective point is set, use it to convert:
         if self.__magoz:
             lst = []
             for i in range(3):
@@ -137,15 +137,14 @@ class Shapes:
                 lst.append(
                     [x[i] * d + self.__magoz.x, y[i] * d + self.__magoz.y])
             self.__disp.append(lst)
-        else:
+        else:  # There is not perspective point, use direct projection.
             for i in range(3):
                 self.__disp.append((x[i], y[i]))
 
-    def convert_now(self):
-        for i in range(len(self.x_face)):
-            self.__convert(self.x_face, self.y_face, self.z_face)
-
     def __build_from_file(self):
+        """
+        Build the faces and vertices lists from the obj file
+        """
         self.__num_vertices = 0
         self.__num_faces = 0
         with open(self.filename, 'r') as f:
@@ -160,64 +159,110 @@ class Shapes:
                             self.__faces.append(line[2:])
                             self.__num_faces += 1
             except IOError:
-                print("error!")
+                return False
 
     def get_big_z(self, z=None):
+        """
+        Get the biggest z coordinate of the shape.
+        :param z: A partial list of z coordinates.
+        """
         if not z:
             z = self.z_vertices
         return max(z)
 
     def get_small_z(self):
+        """
+        Get the smallest z coordinate of the shape.
+        """
         return min(self.z_vertices)
 
     def get_big_y(self, y=None):
+        """
+        Get the biggest y coordinate of the shape.
+        :param y: A partial list of y coordinates.
+        """
         if not y:
             y = self.y_vertices
         return max(y)
 
     def get_small_y(self):
+        """
+        Get the smallest y coordinate of the shape.
+        """
         return min(self.y_vertices)
 
     def get_big_x(self, x=None):
+        """
+        Get the biggest x coordinate of the shape.
+        :param x: A partial list of x coordinates.
+        """
         if not x:
             x = self.x_vertices
         return max(x)
 
     def get_small_x(self):
+        """
+        Get the smallest x coordinate of the shape.
+        """
         return min(self.x_vertices)
 
     def get_middle(self):
+        """
+        Get the coordinates of the middle of the shape.
+        :return: A Point3D object with the middle of the shape.
+        """
         x = (self.get_big_x() + self.get_small_x()) / 2
         y = (self.get_big_y() + self.get_small_y()) / 2
         z = (self.get_big_z() + self.get_small_z()) / 2
         return Point3D(x, y, z)
 
     def remove(self, canvas):
+        """
+        Remove the shape from the canvas.
+        :param canvas: A Tkinter Canvas object to work on.
+        """
         canvas.delete(self.__tag)
 
-    def convert_and_show(self, canvas):
+    def draw(self, canvas):
+        """
+        Draw the shape on a canvas.
+        :param canvas: A Tkinter Canvas object to work on.
+        """
 
         tag = self.__tag
+        # If there is not need to update, just raise the shape so it is at the
+        # top of the stack:
         if not self.__needs_update:
             canvas.tag_raise(tag)
             return
 
+        # Remove the previously drawn shape:
         canvas.delete(tag)
 
+        # For each face, check if it facing towards the camera. If so, draw it.
+        # Iterate according to the correct order:
         for i in range(self.__num_faces):
-
-            # TODO: Tidy
             if not self.__check(*self.__disp[self.__faces_order[i]][0],
                                 *self.__disp[self.__faces_order[i]][1],
                                 *self.__disp[self.__faces_order[i]][2]):
                 color = self.__colors[self.__faces_order[i]]
                 canvas.create_polygon(self.__disp[self.__faces_order[i]],
                                       fill=color, tag=tag)
+
+        # Set the update flag to false:
         self.__needs_update = False
 
     def mull_points(self, matrix):
+        """
+        Multiply the shapes vertices by a matrix.
+        :param matrix: A Matrix_3D object to mulltiply by.
+        """
+
+        # If the matrix is the identity, skip:
         if matrix.check_identity():
             return
+
+        # Multiply and set the flag to update:
         self.x_vertices, self.y_vertices, self.z_vertices = matrix.mullAllPoints(
             self.x_vertices,
             self.y_vertices,
@@ -226,4 +271,8 @@ class Shapes:
         self.__needs_update = True
 
     def set_color(self, color):
+        """
+        Set the color to a specific value.
+        :param color: A tuple of RGB color values.
+        """
         self.__color = color

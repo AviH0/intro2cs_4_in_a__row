@@ -45,4 +45,4 @@ class Table:
         self.__shape_list.sort(key=lambda value: value.get_middle().z,
                                reverse=True)
         for shape in self.__shape_list:
-            shape.convert_and_show(canvas)
+            shape.draw(canvas)
