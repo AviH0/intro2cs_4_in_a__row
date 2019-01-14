@@ -74,7 +74,8 @@ class Gui:
             else:
                 try:
                     game.make_move(key)
-                    graphics.play_coin(key)
+                    player = game.get_current_player()
+                    graphics.play_coin(key, player)
                     if game.get_winner():
                         "player current player won!"
                         print(game.get_winner())

@@ -93,6 +93,12 @@ class Graphics:
                 ' directional keys to move the camera'
 
     def __init__(self, canvas, player_1_color=RED, player_2_color=GREEN):
+        """
+        Create an instance of graphics on a canvas.
+        :param canvas: A Tkinter Canvas to work on.
+        :param player_1_color: A string with a color for the first player.
+        :param player_2_color: A string with a color for the second player.
+        """
 
         # Configure Canvas:
         self.__canvas = canvas
@@ -102,7 +108,6 @@ class Graphics:
         self.__canvas.master.geometry(
             "%dx%d%+d%+d" % (self.WIDTH, self.HEIGHT, 0, 0))
         self.__canvas.master.resizable(height=False, width=False)
-
 
         # Environment points:
         self.magoz = Point3D(*self.MAGOZ)
@@ -122,7 +127,7 @@ class Graphics:
         # Player handles:
         self.__players = [self.__player_1, self.__player_2]
         self.__player_colors = [self.__player_1_color, self.__player_2_color]
-        self.__current_player = 0
+        self.__current_player = self.__players[0]
 
         # Create the matrix and set the first transformation:
         self.__first_transformation()
@@ -152,6 +157,9 @@ class Graphics:
         self.prepare_and_draw_all()
 
     def __build_shapes(self):
+        """
+        Build all the shapes.
+        """
         # Build all the shapes:
         self.__board.build_shape(*self.BOARD_LOCATION)
         self.__table.build_shape(*self.TABLE_LOCATION)
@@ -169,10 +177,18 @@ class Graphics:
             *self.__player_display_location.get_points())
 
     def __init_points(self):
+        """
+        Initialise 3D pointers.
+        """
         # Create Points:
         self.__center_location = Point3D(*self.CENTER_LOCATION)
 
     def __init_shapes(self, player_1_color, player_2_color):
+        """
+        Initialise all the shapes to be displayed in this graphics instance.
+        :param player_1_color: A string with a color for the first player.
+        :param player_2_color: A string with a color for the second player.
+        """
         # Get RGB colors:
         table_color = self.__canvas.winfo_rgb(self.TABLE_COLOR)
         board_color = self.__canvas.winfo_rgb(self.BOARD_COLOR)
@@ -200,27 +216,47 @@ class Graphics:
         self.__player_2 = Shapes(self.magoz, self.__light_source,
                                  self.NUMBER_2_FILE, self.__player_2_color,
                                  self.NUMBER_2_TAG)
-        self.__shapes = [self.__table, self.__floor, self.__room, self.__text,
+        self.__shapes = [self.__floor, self.__room, self.__text, self.__table,
                          self.__board, self.__player, self.__player_1,
                          self.__player_2]
+        self.__shapes_order = {shape: i for shape, i in
+                               enumerate(self.__shapes)}
 
     def __first_transformation(self):
+        """
+        Bring all the objects to their initial location.
+        """
+
+        # Initialise the matrix:
         self.__cur_state = Matrix3D()
+
+        # Create a matrix with a scaling transformation and mull it with the
+        # main matrix:
         temp = Matrix3D()
         temp.setMatScale(*self.__center_location.get_points(), 1.5,
                          1.5, 1.5)
         self.__cur_state.mullMatMat(temp)
+
+        # Create a matrix with a rotation transformation and mull it with the
+        # main matrix:
         temp.setMatRotateXFix(math.pi / 45,
                               *self.__center_location.get_points())
         self.__cur_state.mullMatMat(temp)
+
+        # Scale up the room and floor:
         mat = Matrix3D()
         mat.setMatScale(*self.__floor.get_middle().get_points(), 2, 2, 2)
         self.__floor.mull_points(mat)
         self.__room.mull_points(mat)
 
     def prepare_and_draw_all(self):
+        """
+        Update all the shape's positions according to the matrix, and redraw
+        them accordingly.
+        """
 
-        # Transform all the shapes with the current matrix:
+        # Transform all the shapes with the current matrix and make them update
+        # their faces, (except for those that we don't want to show:
         for shape in self.__shapes:
             shape.mull_points(self.__cur_state)
             shape.real_to_guf()
@@ -235,30 +271,35 @@ class Graphics:
             for point in column:
                 point.mull_point(self.__cur_state)
 
-        # Draw all the relevant shapes for the current view:
+        # Draw all the relevant shapes in the correct order for the current
+        # view:
         self.__room.convert_and_show(self.__canvas, self.__center_location.z)
-
         self.__floor.convert_and_show(self.__canvas)
 
+        # If the text is behind the board, show it:
         if self.__text.get_middle().z > self.__board.get_middle().z:
             self.__text.convert_and_show(self.__canvas)
 
-
-
+        # If the table is tilted forwards, show it now before the board:
         if self.__board.get_board_top().z < self.__table.get_middle().z:
             self.__table.convert_and_show(self.__canvas)
 
+        # Show the back of the board, then the coins, and then the front side:
         self.__board.convert_and_show_back(self.__canvas)
         for coin in self.__active_coins:
             coin.convert_and_show(self.__canvas)
         self.__board.convert_and_show_front(self.__canvas)
-        self.__player.convert_and_show(self.__canvas)
-        self.__players[self.__current_player].convert_and_show(
-            self.__canvas)
 
+        # Show the current player display
+        self.__player.convert_and_show(self.__canvas)
+        self.__current_player.convert_and_show(self.__canvas)
+
+        # If the table is tilted backwards, show it now:
         if self.__board.get_board_top().z >= self.__table.get_middle().z:
             self.__table.convert_and_show(self.__canvas)
 
+        #TODO: Fix this!
+        # If the room is tilted backwards enough that the camera is beneath the floor, show the floor last:
         if self.__floor.get_middle().z < self.__room.get_middle().z:
             self.__canvas.tag_raise(self.FLOOR_TAG)
 
@@ -274,12 +315,12 @@ class Graphics:
         # Set the mainloop to redraw:
         self.__canvas.master.after(50, self.prepare_and_draw_all)
 
-    def play_coin(self, column):
-        color = self.__player_colors[self.__current_player]
+    def play_coin(self, column, player):
+        color = self.__player_colors[player - 1]
         coin_to_play = self.__coins[column].pop()
         coin_to_play.set_color(color)
         self.__active_coins.append(coin_to_play)
-        self.__current_player ^= 1
+        self.__current_player = self.__players[player]
         self.__place_coin(coin_to_play, column)
 
     def victory(self):
@@ -404,7 +445,8 @@ class Graphics:
             self.__cur_state.mullMatMat(mat1)
 
         if 'zoom' in kwargs.keys():
-            if self.__floor.get_big_z() - self.__floor.get_small_z() < 5000 and kwargs['zoom'] < 1:
+            if self.__floor.get_big_z() - self.__floor.get_small_z() < 5000 and \
+                    kwargs['zoom'] < 1:
                 return
             mat1.setMatScale(*self.__center_location.get_points(),
                              kwargs['zoom'], kwargs['zoom'], kwargs['zoom'])
@@ -421,4 +463,3 @@ class Graphics:
             mat1.setMatRotateXFix(angle,
                                   *self.__center_location.get_points())
             self.__cur_state.mullMatMat(mat1)
-
