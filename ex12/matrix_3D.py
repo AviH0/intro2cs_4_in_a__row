@@ -1,6 +1,5 @@
 import math as Math
 import numpy as np
-import theano.tensor.nlinalg
 
 
 class Matrix3D:
@@ -255,16 +254,12 @@ class Matrix3D:
         self.mat = matmul
 
     def mullAllPoints(self, xr, yr, zr, aNum):
-        #
-        a = theano.tensor.matrix()
-        b = theano.tensor.matrix()
-        mull = theano.function([a, b], theano.tensor.dot(a, b))
+
 
         cr = [1 for i in range(aNum)]
         points = [xr, yr, zr, cr]
         mat = self.mat
-        points = mull(np.transpose(points), mat)
-        # points = np.matmul(np.transpose(points), mat)
+        points = np.matmul(np.transpose(points), mat)
         points = np.transpose(points)
         xr, yr, zr, cr = points
         # points = np.array([xr, yr, zr, cr])
