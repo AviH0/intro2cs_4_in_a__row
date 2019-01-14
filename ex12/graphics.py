@@ -8,6 +8,7 @@ import math
 import time
 
 
+
 class Graphics:
     # Files:
     FLOOR_FILE = 'ex12/floor.obj'
@@ -47,7 +48,7 @@ class Graphics:
     # Points:
     DEPTH = 5000
     MAGOZ = WIDTH / 2, HEIGHT / 3, DEPTH
-    CENTER_LOCATION = 0, 0, DEPTH
+    CENTER_LOCATION = 0, 100, DEPTH
     LIGHT_SOURCE = 500, 500, 4900
 
     # Locations:
@@ -245,7 +246,7 @@ class Graphics:
 
         # Scale up the room and floor:
         mat = Matrix3D()
-        mat.setMatScale(*self.__floor.get_middle().get_points(), 2, 2, 2)
+        mat.setMatScale(*self.__floor.get_middle().get_points(), 2.5, 2.5, 2.5)
         self.__floor.mull_points(mat)
         self.__room.mull_points(mat)
 
@@ -298,10 +299,10 @@ class Graphics:
         if self.__board.get_board_top().z >= self.__table.get_middle().z:
             self.__table.convert_and_show(self.__canvas)
 
-        #TODO: Fix this!
-        # If the room is tilted backwards enough that the camera is beneath the floor, show the floor last:
-        if self.__floor.get_middle().z < self.__room.get_middle().z:
-            self.__canvas.tag_raise(self.FLOOR_TAG)
+        # #TODO: Fix this!
+        # # If the room is tilted backwards enough that the camera is beneath the floor, show the floor last:
+        # if self.__text.get_big_y() < self.__room.get_middle().y:
+        #     self.__floor.remove(self.__canvas)
 
         # Reset the matrix:
         self.__cur_state.setIdentity()
@@ -320,11 +321,11 @@ class Graphics:
         coin_to_play = self.__coins[column].pop()
         coin_to_play.set_color(color)
         self.__active_coins.append(coin_to_play)
-        self.__current_player = self.__players[player]
+        self.__current_player = self.__players[(player - 1) ^ 1]
         self.__place_coin(coin_to_play, column)
 
     def victory(self):
-        self.__current_player ^= 1
+        self.__current_player = self.__players[self.__players.index(self.__current_player) ^ 1]
         player_mat = Matrix3D()
         player_mat.setMatScale(*self.__player.get_middle().get_points(), 1.1,
                                1.1, 1.1)
@@ -333,12 +334,12 @@ class Graphics:
     def __animate_player(self, mat, i=1):
 
         self.__player.mull_points(mat)
-        self.__players[self.__current_player].mull_points(mat)
+        self.__current_player.mull_points(mat)
         if i < 9:
             temp = Matrix3D()
             temp.setMatRotateZFix(math.radians(10 * ((-1) ** i) / 2 * i),
                                   *self.__player.get_middle().get_points())
-            self.__players[self.__current_player].mull_points(temp)
+            self.__current_player.mull_points(temp)
             self.__player.mull_points(temp)
             self.__canvas.master.after(100, lambda: self.__animate_player(mat,
                                                                           i + 1))
@@ -445,7 +446,7 @@ class Graphics:
             self.__cur_state.mullMatMat(mat1)
 
         if 'zoom' in kwargs.keys():
-            if self.__floor.get_big_z() - self.__floor.get_small_z() < 5000 and \
+            if self.__board.get_big_y() - self.__board.get_small_y() < 350 and \
                     kwargs['zoom'] < 1:
                 return
             mat1.setMatScale(*self.__center_location.get_points(),
@@ -453,12 +454,16 @@ class Graphics:
             self.__cur_state.mullMatMat(mat1)
 
         if 'up' in kwargs.keys():
+            if self.__floor.get_big_z() - self.__floor.get_small_z() < 1000:
+                return
             angle = math.radians(kwargs['up'])
             mat1.setMatRotateXFix(angle,
                                   *self.__center_location.get_points())
             self.__cur_state.mullMatMat(mat1)
 
         if 'down' in kwargs.keys():
+            if self.__floor.get_big_y() - self.__floor.get_small_y() < 1000:
+                return
             angle = -math.radians(kwargs['down'])
             mat1.setMatRotateXFix(angle,
                                   *self.__center_location.get_points())
