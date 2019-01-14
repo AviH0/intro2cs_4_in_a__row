@@ -5,8 +5,8 @@ from .matrix_3D import Point3D
 class Board:
 
     # Files:
-    SIDE_A_FILE = 'ex12/SideA.obj'
-    SIDE_B_FILE = 'ex12/SideB.obj'
+    SIDE_A_FILE = 'ex12/Main_Body_Left_Side.obj'#'ex12/SideA.obj'
+    SIDE_B_FILE = 'ex12/Main_Body_Right_Side.obj'#'ex12/SideB.obj'
 
     # Tags:
     SIDE_A_TAG = 'boardA'
