@@ -19,32 +19,40 @@ class AI:
                 self.cells[i].append(0)
 
     def find_legal_move(self, timeout=None):
-        self.find_legal_move()
-
+        return self.find_move_helper()
+    def update_board(self,column,player):
+        for row in range(5,-1,-1):
+            if self.cells[row][column]==0:
+                self.cells[row][column]=player
+                break
     def find_move_helper(self,col=None,turn=0):
         if turn==0:
             for col in range(self.COLS_NUM):
-                for row in range (self.ROWS_NUM):
-                    if self.cells[row][col]==0:
-                        self.cells[row][col]= self.ai_num
-                        if self.get_winner()== self.ai_num:
-                            return col
-                        booli= self.find_move_helper(col,turn+1)
-                        self.cells[row][col]=0
-                        if booli is True:
-                            return col
-                        if booli is False:
-                            r= range(0,col) + range(col+1, self.COLS_NUM)
-                            return random.choice(r)
-                    break
+                if self.cells[self.ROWS_NUM-1][col]==0:
+                    for row in range (self.ROWS_NUM):
+                        if self.cells[row][col]==0:
+                            self.cells[row][col]= self.ai_num
+                            if self.get_winner()== self.ai_num:
+                                return col
+                            booli= self.find_move_helper(col,turn+1)
+                            self.cells[row][col]=0
+                            if booli is True:
+                                return col
+                            if booli is False:
+                                r= range(0,col) + range(col+1, self.COLS_NUM)
+                                return random.choice(r)
+                        break
         else:
             for col in range(self.COLS_NUM):
-                for row in range (self.ROWS_NUM):
-                    if self.cells[row][col]==0:
-                        self.cells[row][col]= self.other_ai_num
-                        if self.get_winner()== self.other_ai_num:
-                            return False
-                        break
+                if self.cells[self.ROWS_NUM - 1][col] == 0:
+                    for row in range (self.ROWS_NUM):
+                        if self.cells[row][col]==0:
+                            self.cells[row][col]= self.other_ai_num
+                            if self.get_winner()== self.other_ai_num:
+                                self.cells[row][col] = 0
+                                return False
+                            self.cells[row][col]=0
+                            break
             return True
 
     def get_winner(self):

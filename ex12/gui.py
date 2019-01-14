@@ -1,7 +1,7 @@
 import tkinter as tk
 from game import Game
 from .graphics import Graphics
-
+from ai import AI
 
 class Gui:
 
@@ -49,23 +49,31 @@ class Gui:
         options.pack()
 
     def __start_game(self, button, mode):
+        game = Game()
+        current="pvp"
         if mode == 'PvP':
             button.config(image=self.__pvp_selected)
         else:
+            current="pvc"
             button.config(image=self.__pvpc_selected)
 
         slaves = self.__root.pack_slaves()
         for slave in slaves:
             slave.destroy()
-        game = Game()
-
 
         canvas = tk.Canvas(self.__root)
         graphics = Graphics(canvas)
         canvas.pack()
-        self.__root.bind('<Key>', lambda event: self.key_pressed(game, graphics, event))
 
-    def key_pressed(self, game, graphics, event):
+        if current=="pvc":
+            ai1= AI(game,1)
+            move=ai1.find_legal_move()
+            game.make_move(move)
+            ai1.update_board(move,1)
+            graphics.play_coin(move,1)
+        self.__root.bind('<Key>', lambda event: self.key_pressed(game, graphics, event,ai1))
+
+    def key_pressed(self, game, graphics, event,ai=None):
         key = event.keysym
         if event.char.isnumeric():
             key = int(event.char) - 1
@@ -73,15 +81,23 @@ class Gui:
                 pass
             else:
                 try:
-                    game.make_move(key)
+
                     player = game.get_current_player()
+                    game.make_move(key)
                     graphics.play_coin(key, player)
+                    if ai != None:
+                        ai.update_board(key, player)
+                        move = ai.find_legal_move()
+                        game.make_move(move)
+                        graphics.play_coin(move, 1)
+                        ai.update_board(key,1)
                     if game.get_winner():
                         "player current player won!"
                         print(game.get_winner())
                         self.__root.unbind('<Key>')
                         graphics.victory()
                         graphics.display_message('Game Over!', 'green')
+
                 except ValueError:
                     graphics.display_message('--Illegal Move!--', 'red')
 
