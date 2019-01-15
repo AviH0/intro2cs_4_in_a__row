@@ -84,6 +84,7 @@ class AI:
                 col=item[1]
                 self.cells[row][col]=self.ai_num
                 if self.get_winner()== self.ai_num:
+                    self.cells[row][col] = 0
                     return col
                 self.cells[row][col] = 0
             for item in lst:
@@ -91,6 +92,7 @@ class AI:
                 col=item[1]
                 self.cells[row][col]=self.other_ai_num
                 if self.get_winner()== self.other_ai_num:
+                    self.cells[row][col] = 0
                     return col
                 self.cells[row][col] = 0
             return lst[0][1]
