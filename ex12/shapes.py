@@ -13,7 +13,7 @@ class Shapes:
         :param light_source:A Point3D object with the light-source location.
         :param filename: A string with the past to an .OBJ file with a 3D
                          object.
-        :param color: rgb values for this object's color
+        :param color: rgb values for this object's color.
         :param tag: A String with this object's unique tag.
         """
         self.__magoz = magoz

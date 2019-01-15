@@ -2,8 +2,18 @@ import tkinter as tk
 from game import Game
 from .graphics import Graphics
 from ai import AI
+import os
+
 
 class Gui:
+
+    # Files:
+    PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
+    START = PATH + '/images/start.png'
+    PVP = PATH + '/images/pvp.png'
+    PVC = PATH + '/images/pvc.png'
+    PVP_SELECTED = PATH + '/images/PvP-selected.png'
+    PVPC_SELECTED = PATH + '/images/PvPC-selected.png'
 
     def __init__(self):
         self.__root = tk.Tk()
@@ -13,11 +23,11 @@ class Gui:
 
 
     def __load_rescources(self):
-        self.__start_image = tk.PhotoImage(file='ex12/images/start.png')
-        self.__p_v_p = tk.PhotoImage(file='ex12/images/pvp.png')
-        self.__p_v_pc = tk.PhotoImage(file='ex12/images/pvc.png')
-        self.__pvp_selected = tk.PhotoImage(file='ex12/images/PvP-selected.png')
-        self.__pvpc_selected = tk.PhotoImage(file='ex12/images/PvPC-selected.png')
+        self.__start_image = tk.PhotoImage(file=self.START)
+        self.__p_v_p = tk.PhotoImage(file=self.PVP)
+        self.__p_v_pc = tk.PhotoImage(file=self.PVC)
+        self.__pvp_selected = tk.PhotoImage(file=self.PVP_SELECTED)
+        self.__pvpc_selected = tk.PhotoImage(file=self.PVPC_SELECTED)
 
 
     def __welcome(self):
@@ -97,6 +107,7 @@ class Gui:
                         print(game.get_winner())
                         self.__root.unbind('<Key>')
                         graphics.victory()
+                        graphics.mark_victory([(0, 0), (1, 1)], 'black')
                         graphics.display_message('Game Over!', 'green')
 
                 except ValueError:
