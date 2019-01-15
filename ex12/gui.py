@@ -8,7 +8,7 @@ import os
 class Gui:
 
     # Files:
-    PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
+    PATH = os.path.dirname(os.path.realpath(__file__))
     START = PATH + '/images/start.png'
     PVP = PATH + '/images/pvp.png'
     PVC = PATH + '/images/pvc.png'
@@ -107,7 +107,6 @@ class Gui:
                         print(game.get_winner())
                         self.__root.unbind('<Key>')
                         graphics.victory()
-                        graphics.mark_victory([(0, 0), (1, 1)], 'black')
                         graphics.display_message('Game Over!', 'green')
 
                 except ValueError:

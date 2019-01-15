@@ -9,7 +9,7 @@ class Board:
     """
 
     # Files:
-    PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
+    PATH = os.path.dirname(os.path.realpath(__file__))
     SIDE_A_FILE = PATH + '/SideA.obj'
     SIDE_B_FILE = PATH + '/SideB.obj'
 

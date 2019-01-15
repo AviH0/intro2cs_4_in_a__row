@@ -1,4 +1,4 @@
-import random
+from game import Game
 import numpy as np
 class AI:
 
@@ -19,7 +19,12 @@ class AI:
                 self.cells[i].append(0)
 
     def find_legal_move(self, timeout=None):
-        return self.find_move_helper()
+        # return self.find_move_helper()
+        options = self.find_relevant_cells()
+        options = {option[1]: 0 for option in options}
+        options = self.think(options, self.ai_num)
+        return max(options.keys(), key=lambda value: options[value])
+
 
     def update_board(self,column,player):
         for row in range(5,-1,-1):
@@ -36,6 +41,41 @@ class AI:
 
                         break
         return lst
+
+    def create_game(self, moves):
+        game = Game()
+        for i in range(6):
+            for j in range(7):
+                game.cells[i][j] = self.game.get_player_at(i, j)
+        for move in moves:
+            try:
+                game.make_move(int(move))
+            except ValueError:
+                pass
+        return game
+
+    def think(self, options_dict, player, moves=""):
+        game = self.create_game(moves)
+        options = {option: 0 for option in options_dict.keys()}
+        winner = game.get_winner()
+        last_move = 1
+        if moves:
+            last_move = int(moves[-1])
+        if len(moves) > 2:
+            return {last_move:-1}
+        if winner == self.ai_num:
+            return {last_move:1}
+        if winner == self.other_ai_num:
+            return {last_move:-1}
+        for option in options.keys():
+            if player == self.ai_num:
+                options[option] += sum(self.think(options, self.other_ai_num, moves + str(option)))
+            else:
+                options[option] += sum(self.think(options, self.ai_num, moves))
+        return options
+
+
+
     def find_move_helper(self,col=None,turn=0):
         if turn==0:
             lst=self.find_relevant_cells()
