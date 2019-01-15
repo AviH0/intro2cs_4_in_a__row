@@ -89,8 +89,9 @@ class Gui:
                         ai.update_board(key, player)
                         move = ai.find_legal_move()
                         game.make_move(move)
+                        ai.update_board(move, 1)
                         graphics.play_coin(move, 1)
-                        ai.update_board(key,1)
+
                     if game.get_winner():
                         "player current player won!"
                         print(game.get_winner())
