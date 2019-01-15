@@ -3,6 +3,7 @@ from .board import Board
 from .shapes import Shapes
 from .table import Table
 from .room import Room
+import os
 import tkinter
 import math
 import time
@@ -11,12 +12,13 @@ import time
 
 class Graphics:
     # Files:
-    FLOOR_FILE = 'ex12/floor.obj'
-    TEXT_FILE = 'ex12/text.obj'
-    PLAYER_FILE = 'ex12/player.obj'
-    NUMBER_1_FILE = 'ex12/number_1.obj'
-    NUMBER_2_FILE = 'ex12/number_2.obj'
-    COIN_FILE = "ex12/coin.obj"
+    PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
+    FLOOR_FILE = PATH + '/floor.obj'
+    TEXT_FILE = PATH + '/text.obj'
+    PLAYER_FILE = PATH + '/player.obj'
+    NUMBER_1_FILE = PATH + '/number_1.obj'
+    NUMBER_2_FILE = PATH + '/number_2.obj'
+    COIN_FILE = PATH + '/coin.obj'
 
     # Tags:
     FLOOR_TAG = 'Floor'
@@ -274,7 +276,7 @@ class Graphics:
 
         # Draw all the relevant shapes in the correct order for the current
         # view:
-        self.__room.convert_and_show(self.__canvas, self.__center_location.z)
+        self.__room.draw(self.__canvas, self.__center_location.z)
         self.__floor.draw(self.__canvas)
 
         # If the text is behind the board, show it:
@@ -283,13 +285,13 @@ class Graphics:
 
         # If the table is tilted forwards, show it now before the board:
         if self.__board.get_board_top().z < self.__table.get_middle().z:
-            self.__table.convert_and_show(self.__canvas)
+            self.__table.draw(self.__canvas)
 
         # Show the back of the board, then the coins, and then the front side:
-        self.__board.convert_and_show_back(self.__canvas)
+        self.__board.draw_back(self.__canvas)
         for coin in self.__active_coins:
             coin.draw(self.__canvas)
-        self.__board.convert_and_show_front(self.__canvas)
+        self.__board.draw_front(self.__canvas)
 
         # Show the current player display
         self.__player.draw(self.__canvas)
@@ -297,12 +299,7 @@ class Graphics:
 
         # If the table is tilted backwards, show it now:
         if self.__board.get_board_top().z >= self.__table.get_middle().z:
-            self.__table.convert_and_show(self.__canvas)
-
-        # #TODO: Fix this!
-        # # If the room is tilted backwards enough that the camera is beneath the floor, show the floor last:
-        # if self.__text.get_big_y() < self.__room.get_middle().y:
-        #     self.__floor.remove(self.__canvas)
+            self.__table.draw(self.__canvas)
 
         # Reset the matrix:
         self.__cur_state.set_identity()
@@ -428,6 +425,7 @@ class Graphics:
     def mark_victory(self, coords, color=WALL_COLOR):
         for coord in coords:
             self.__canvas.itemconfig(self.COIN_TAG % coord, fill=color)
+        self.__canvas.update_idletasks()
 
     def move_camera(self, **kwargs):
         mat1 = Matrix3D()
