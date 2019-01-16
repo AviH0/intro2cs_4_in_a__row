@@ -49,16 +49,15 @@ class Gui:
         options = tk.Frame(self.__root)
 
         p_v_p_button = tk.Button(options, image=self.__p_v_p,
-                                 command=lambda: self.__start_game(
-                                     p_v_p_button, mode='PvP'),
+                                 command=lambda: self.__start_game(mode='PvP'),
                                  relief='flat')
         p_v_pc_button = tk.Button(options, image=self.__p_v_pc,
                                   command=lambda: self.__start_game(
-                                      p_v_pc_button, mode='PvPC'),
+                                      mode='PvPC'),
                                   relief='flat')
         pc_v_pc_button = tk.Button(options, image=self.__pc_v_pc,
                                    command=lambda: self.__start_game(
-                                       p_v_pc_button, mode='PCvPC'),
+                                       mode='PCvPC'),
                                    relief='flat')
         pc_v_pc_button.pack()
         p_v_p_button.pack()
@@ -67,7 +66,7 @@ class Gui:
 
     def __start_game(self, mode):
         game = Game()
-        current = "pvp"
+        current = mode
         # if mode == 'PvP':
         #     button.config(image=self.__pvp_selected)
         # elif mode == "PCvPC":
@@ -86,29 +85,31 @@ class Gui:
         if mode == "PCvPC":
             ai1 = AI(game, 1)
             ai2 = AI(game, 2)
-            while True:
-                if game.get_winner() != None:
-                    break
-                move = ai1.find_legal_move()
-                game.make_move(move)
-                ai1.update_board(move, 1)
-                graphics.play_coin(move, 1)
-
-                move = ai2.find_legal_move()
-                game.make_move(move)
-                ai2.update_board(move, 2)
-                graphics.play_coin(move, 2)
+            self.__bot_vs_bot(game, graphics, ai1, ai2)
         if current == "pvc":
             ai1 = AI(game, 1)
-            move = ai1.find_legal_move()
-            game.make_move(move)
-            ai1.update_board(move, 1)
-            graphics.play_coin(move, 1)
+            self.__play_ai_move(game, graphics, ai1, 1)
         else:
             ai1 = None
         self.__root.bind('<Key>',
                          lambda event: self.key_pressed(game, graphics, event,
                                                         ai1))
+
+    def __bot_vs_bot(self, game, graphics, ai1, ai2):
+
+        # move = ai1.find_legal_move()
+        # game.make_move(move)
+        # ai1.update_board(move, 1)
+        # graphics.play_coin(move, 1)
+        if self.__play_ai_move(game, graphics, ai1, ai1.ai_num):
+            self.__root.after(1000,
+                              lambda: self.__bot_vs_bot(game, graphics, ai2,
+                                                        ai1))
+
+        # move = ai2.find_legal_move()
+        # game.make_move(move)
+        # ai2.update_board(move, 2)
+        # graphics.play_coin(move, 2)
 
     def key_pressed(self, game, graphics, event, ai=None):
         key = event.keysym
@@ -134,7 +135,7 @@ class Gui:
                         self.__root.after(1000,
                                           lambda: self.__play_ai_move(game,
                                                                       graphics,
-                                                                      ai))
+                                                                      ai, 1))
 
                 except ValueError:
                     graphics.display_message('--Illegal Move!--', 'red')
@@ -152,16 +153,18 @@ class Gui:
         if key == 'minus':
             graphics.move_camera(zoom=1 / 1.1)
 
-    def __play_ai_move(self, game, graphics, ai):
+    def __play_ai_move(self, game, graphics, ai, player):
         move = ai.find_legal_move()
         game.make_move(move)
-        ai.update_board(move, 1)
-        graphics.play_coin(move, 1)
+        ai.update_board(move, player)
+        graphics.play_coin(move, player)
         winner = game.get_winner()
         if winner:
             self.__root.after(10,
                               lambda: self.__game_is_over(graphics,
                                                           winner))
+            return False
+        return True
 
     def __game_is_over(self, graphics, winner):
         "player current player won!"
