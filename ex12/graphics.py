@@ -156,6 +156,9 @@ class Graphics:
                                   fill=self.GREEN,
                                   font=self.HELP_FONT, tags=self.MSG_TAG)
 
+        # Flag to see if loop should continue.
+        self.__still_alive = True
+
         # Make the first call to redraw:
         self.prepare_and_draw_all()
 
@@ -311,7 +314,8 @@ class Graphics:
         self.__canvas.tag_raise(self.MSG_TAG)
 
         # Set the mainloop to redraw:
-        self.__canvas.master.after(50, self.prepare_and_draw_all)
+        if self.__still_alive:
+            self.__canvas.master.after(50, self.prepare_and_draw_all)
 
     def play_coin(self, column, player):
         color = self.__player_colors[player - 1]
@@ -426,6 +430,9 @@ class Graphics:
         for coord in coords:
             self.__canvas.itemconfig(self.COIN_TAG % coord, fill=color)
         self.__canvas.update_idletasks()
+
+    def quit(self):
+        self.__still_alive = False
 
     def move_camera(self, **kwargs):
         mat1 = Matrix3D()
