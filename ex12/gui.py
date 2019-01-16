@@ -66,14 +66,7 @@ class Gui:
 
     def __start_game(self, mode):
         game = Game()
-        current = mode
-        # if mode == 'PvP':
-        #     button.config(image=self.__pvp_selected)
-        # elif mode == "PCvPC":
-        #     current = "pcvpc"
-        # else:
-        #     current = "pvc"
-        #     button.config(image=self.__pvpc_selected)
+
 
         slaves = self.__root.pack_slaves()
         for slave in slaves:
@@ -86,7 +79,7 @@ class Gui:
             ai1 = AI(game, 1)
             ai2 = AI(game, 2)
             self.__bot_vs_bot(game, graphics, ai1, ai2)
-        if current == "PvPC":
+        if mode == "PvPC":
             ai1 = AI(game, 1)
             self.__play_ai_move(game, graphics, ai1, 1)
         else:
@@ -97,19 +90,11 @@ class Gui:
 
     def __bot_vs_bot(self, game, graphics, ai1, ai2):
 
-        # move = ai1.find_legal_move()
-        # game.make_move(move)
-        # ai1.update_board(move, 1)
-        # graphics.play_coin(move, 1)
+
         if self.__play_ai_move(game, graphics, ai1, ai1.ai_num):
             self.__root.after(1000,
                               lambda: self.__bot_vs_bot(game, graphics, ai2,
                                                         ai1))
-
-        # move = ai2.find_legal_move()
-        # game.make_move(move)
-        # ai2.update_board(move, 2)
-        # graphics.play_coin(move, 2)
 
     def key_pressed(self, game, graphics, event, ai=None):
         key = event.keysym
@@ -130,7 +115,7 @@ class Gui:
                         self.__root.after(10, lambda: self.__game_is_over(
                             graphics, winner))
 
-                    if ai:
+                    elif ai:
                         ai.update_board(key, player)
                         self.__root.after(1000,
                                           lambda: self.__play_ai_move(game,

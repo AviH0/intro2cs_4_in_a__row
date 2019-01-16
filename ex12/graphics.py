@@ -9,7 +9,6 @@ import math
 import time
 
 
-
 class Graphics:
     # Files:
     PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -70,6 +69,10 @@ class Graphics:
                     CENTER_LOCATION[2] + -1000
 
     PLAYER_DISPLAY_OFFSET = -15, -25, -25
+    BOARD_X_OFFSET = -170
+    BOARD_Y_OFFSET = 40
+    BOARD_SPACE_BETWEEN_COLUMNS = 56
+    BORAD_SPACE_BETWEEN_ROWS = 48
     HELP_LOCATION = 450, HEIGHT - 50
     MSG_LOCATION = WIDTH / 2, 500
     TIMER_LOCATION = 170, 30
@@ -94,6 +97,9 @@ class Graphics:
     TIME_TEXT = '%02d : %02d : %02d'
     HELP_TEXT = 'Use numbers 1-7 to make a move, `-` and `+` to zoom and the' \
                 ' directional keys to move the camera'
+
+    # Time:
+    MESSAGE_TIMEOUT = 2000
 
     def __init__(self, canvas, player_1_color=RED, player_2_color=GREEN):
         """
@@ -251,7 +257,8 @@ class Graphics:
 
         # Scale up the room and floor:
         mat = Matrix3D()
-        mat.set_mat_scale(*self.__floor.get_middle().get_points(), 2.5, 2.5, 2.5)
+        mat.set_mat_scale(*self.__floor.get_middle().get_points(), 2.5, 2.5,
+                          2.5)
         self.__floor.mull_points(mat)
         self.__room.mull_points(mat)
 
@@ -318,53 +325,100 @@ class Graphics:
             self.__canvas.master.after(50, self.prepare_and_draw_all)
 
     def play_coin(self, column, player):
+        """
+        Drop one coin into the board.
+        :param column: An integer with the column to drop a coin in.
+        :param player: An integer with the player that plays this coin.
+        """
+        # Set the color:
         color = self.__player_colors[player - 1]
+        # Pop the coin from the stack:
         coin_to_play = self.__coins[column].pop()
+        # Set the coin's color:
         coin_to_play.set_color(color)
+        # Put the coin in active list so it is drawn:
         self.__active_coins.append(coin_to_play)
+        # Switch the current player for the display:
         self.__current_player = self.__players[(player - 1) ^ 1]
+        # Place the coin in the board:
         self.__place_coin(coin_to_play, column)
 
     def victory(self):
-        self.__current_player = self.__players[self.__players.index(self.__current_player) ^ 1]
-        player_mat = Matrix3D()
-        player_mat.set_mat_scale(*self.__player.get_middle().get_points(), 1.1,
-                                 1.1, 1.1)
-        self.__animate_player(player_mat)
+        """
+        The game is over, the last player who played won. Display some stuff.
+        """
+        # Switch the player back to the las player who played:
+        self.__current_player = self.__players[
+            self.__players.index(self.__current_player) ^ 1]
+        # Do some animation:
+        self.__animate_player()
 
-    def __animate_player(self, mat, i=1):
-
+    def __animate_player(self, i=1):
+        mat = Matrix3D()
+        # Set a scale matrix:
+        mat.set_mat_scale(*self.__player.get_middle().get_points(), 1.1,
+                          1.1, 1.1)
+        # Make the player display bigger:
         self.__player.mull_points(mat)
         self.__current_player.mull_points(mat)
         if i < 9:
+            # for the first 9 iterations, rotate back and forth:
             temp = Matrix3D()
             temp.set_mat_rotate_z_fix(math.radians(10 * ((-1) ** i) / 2 * i),
                                       *self.__player.get_middle().get_points())
             self.__current_player.mull_points(temp)
             self.__player.mull_points(temp)
-            self.__canvas.master.after(100, lambda: self.__animate_player(mat,
-                                                                          i + 1))
+            self.__canvas.master.after(100,
+                                       lambda: self.__animate_player(i + 1))
         elif i < 49:
+            # For the last iterations, rotate around the y axis:
             mat.set_mat_rotate_y_fix(math.pi / 10,
                                      *self.__player.get_middle().get_points())
-            self.__canvas.master.after(50, lambda: self.__animate_player(mat,
-                                                                         i + 1))
+            self.__canvas.master.after(50,
+                                       lambda: self.__animate_player(i + 1))
 
     def display_message(self, msg, color=RED):
+        """
+        Display a message to the player.
+        :param msg: A string with a message to display.
+        :param color: A string with a tkinter color for the message.
+        """
+        # Create a text with the message, and make it disappear after timout.
         self.__canvas.create_text(*self.MSG_LOCATION, text=msg,
                                   font=self.MSG_FONT, tag=self.MSG_TAG,
                                   fill=color)
-        self.__canvas.master.after(2000,
+        self.__canvas.master.after(self.MESSAGE_TIMEOUT,
                                    lambda: self.__canvas.delete(self.MSG_TAG))
 
     def __place_coin(self, coin, column):
+        """
+        Plave a coin in the board.
+        :param coin: The coin to place.
+        :param column: The column to place it in.
+        """
+        # Pop the relevant placeholder from the stack:
         point = self.__column_points[column].pop()
+        # calculate the distance to the placeholder:
         dx, dy, dz = -coin.get_middle().x + point.x, -coin.get_middle().y + point.y, -coin.get_middle().z + point.z
-        point = 1 + len(self.__column_points[column])
-        self.__animate_coin(point, coin, dx, dy, dz)
+        # Count the number of steps to make:
+        steps = 1 + len(self.__column_points[column])
+        # Animate the drop:
+        self.__animate_coin(steps, coin, dx, dy, dz)
 
     def __animate_coin(self, num_steps, coin, dx, dy, dz, x0=0, y0=0, z0=0,
                        i=1):
+        """
+        Animate a coin being dropped into the board.
+        :param num_steps: The number of steps the coin should make
+        :param coin: The coin to drop.
+        :param dx: The initial x distance.
+        :param dy: The initial y distance.
+        :param dz: The initial z distance.
+        :param x0: The x distance so far.
+        :param y0: The y distance so far.
+        :param z0: The z distance so far.
+        :param i: A counter to act as time for calculations.
+        """
 
         matrix = Matrix3D()
 
@@ -399,13 +453,19 @@ class Graphics:
                                                                    i + 1))
 
     def __create_coins_and_place_holders(self):
+        """
+        Create all the coins and all the placeholders for the coins
+        """
         for i in range(self.NUM_COLUMNS):
+            # Create a stack of coins and placeholders for this column:
             self.__coins.append([])
             self.__column_points.append([])
             for j in range(self.NUM_ROWS):
-                point = Point3D(self.__board.get_board_top().x - 170 + 56 * i,
-                                self.__board.get_board_top().y + 40 + 48 * j,
-                                self.__board.get_middle().z)
+                # Fill the stacks with coins and placeholders:
+                point = Point3D(
+                    self.__board.get_board_top().x + self.BOARD_X_OFFSET + self.BOARD_SPACE_BETWEEN_COLUMNS * i,
+                    self.__board.get_board_top().y + self.BOARD_Y_OFFSET + self.BORAD_SPACE_BETWEEN_ROWS * j,
+                    self.__board.get_middle().z)
                 self.__column_points[i].append(point)
 
                 new_coin = Shapes(self.magoz, self.__light_source,
@@ -418,6 +478,11 @@ class Graphics:
                     self.__board.get_middle().z)
 
     def __update_clock(self):
+        """
+        Update the clock display.
+        """
+        # Get the current time, put in a string, set it to the display and
+        # raise the display to the top of the canvas stack:
         time_now = time.time() - self.__time
         time_now = time.gmtime(time_now)
         str_time = self.TIME_TEXT % (
@@ -427,27 +492,44 @@ class Graphics:
                                  text=self.TIMER_TEXT + str_time)
 
     def mark_victory(self, coords, color=WALL_COLOR):
+        """
+        Mark some coins in a new color.
+        :param coords: coordinates of the coins to mark, where 0,0 is the top
+                       left of the board.
+        :param color: A string with a tkinter color to mark the coins.
+        """
         for coord in coords:
             self.__canvas.itemconfig(self.COIN_TAG % coord, fill=color)
         self.__canvas.update_idletasks()
 
     def quit(self):
+        """
+        Quit the graphics display.
+        """
+        # Set the alive flag to false so that the draw loop stops.
         self.__still_alive = False
 
     def move_camera(self, **kwargs):
+        """
+        Move the camera.
+        """
+        # For any direction in the keyword args, set a matrix and add it to the
+        # cur_state matrix by multiplying.
         mat1 = Matrix3D()
         if 'right' in kwargs.keys():
             angle = math.radians(kwargs['right'])
-            mat1.set_mat_rotate_axis(*self.__board.get_board_top().get_points(),
-                                     *self.__board.get_board_bottom().get_points(),
-                                     angle)
+            mat1.set_mat_rotate_axis(
+                *self.__board.get_board_top().get_points(),
+                *self.__board.get_board_bottom().get_points(),
+                angle)
             self.__cur_state.mull_mat_mat(mat1)
 
         if 'left' in kwargs.keys():
             angle = -math.radians(kwargs['left'])
-            mat1.set_mat_rotate_axis(*self.__board.get_board_top().get_points(),
-                                     *self.__board.get_board_bottom().get_points(),
-                                     angle)
+            mat1.set_mat_rotate_axis(
+                *self.__board.get_board_top().get_points(),
+                *self.__board.get_board_bottom().get_points(),
+                angle)
             self.__cur_state.mull_mat_mat(mat1)
 
         if 'zoom' in kwargs.keys():
