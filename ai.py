@@ -22,8 +22,8 @@ class AI:
 
     def find_legal_move(self, timeout=None):
         # return self.find_move_helper()
-        options = self.get_possible_moves(self.game)
-        options = self.think(self.ai_num, {option: 0 for option in options})
+        options = self.get_possible_moves(self.game, self.ai_num)
+        options = self.think(self.ai_num)
         result = max(options.keys(), key=lambda x: options[x])
         return result
 
@@ -33,12 +33,12 @@ class AI:
                 self.cells[row][column] = player
                 break
 
-    def find_relevant_cells(self):
+    def find_relevant_cells(self, cells):
         lst = []
         for col in range(self.COLS_NUM):
-            if self.cells[0][col] == 0:
+            if not cells[0][col]:
                 for row in range(5, -1, -1):
-                    if self.cells[row][col] == 0:
+                    if not cells[row][col]:
                         lst.append((row, col))
 
                         break
@@ -48,7 +48,7 @@ class AI:
         game = Game()
         for i in range(6):
             for j in range(7):
-                game.cells[i][j] = self.game.get_player_at(i, j)
+                game.cells[i][j]= self.game.get_player_at(i, j)
         for i in range(max(len(my_moves), len(his_moves))):
             try:
                 if len(my_moves) > i:
@@ -59,68 +59,30 @@ class AI:
                 return False
         return game
 
-    def get_possible_moves(self, game):
+    def get_possible_moves(self, game, player):
         lst = []
+        move = self.find_move_helper(game.cells, player)
+        if move:
+            return [move]
         for i in range(7):
             if not game.cells[0][i]:
                 lst.append(i)
         return lst
 
-    def find_relevant(self, cells):
-        lst = []
-        for col in range(self.COLS_NUM):
-            if cells[0][col] == 0:
-                for row in range(5, -1, -1):
-                    if cells[row][col] == 0:
-                        lst.append((row, col))
-
-                        break
-        return lst
-
-    def think_mat(self, mat, player, depth = 0):
-        relevants = self.find_relevant(mat)
-        good, bad = self.analyze_board(mat)
-        if player == self.other_ai_num:
-            if bad:
-                return [-1000]
-            if good > 1:
-                return [50]
-            if good == 1:
-                return [good]
-        if player == self.ai_num:
-            if good:
-                return [100]
-            # if not good and not bad:
-            #     return [50]
-        if depth > 3:
-            return [0]
-        results = []
-        for option in relevants:
-            mat[option[0]][option[1]] = player
-            if player == self.ai_num:
-                result = self.think_mat(mat, self.other_ai_num, depth+1)[0], option[1]
-            else:
-                result = self.think_mat(mat, self.ai_num, depth + 1)[0], option[1]
-            results.append(result)
-            mat[option[0]][option[1]] = 0
-        if results:
-            return max(results, key=lambda value: value[0])
-        else:
-            return [0]
-
-
-    def think(self, player, options, my_moves="", his_moves=""):
-        game = self.create_game(my_moves, his_moves)
-        possibles = self.get_possible_moves(game)
-        options = {option: options[option] for option in possibles}
+    def think(self, player, my_moves="", his_moves=""):
         last_move = 1
         if my_moves:
             last_move = int(my_moves[-1])
-        if not game:
-            return {last_move: -100}
-        winner = game.get_winner()
+
         if len(my_moves) > 2:
             return {last_move: 0}
+        game = self.create_game(my_moves, his_moves)
+        if not game:
+            return {last_move: -100}
+        possibles = self.get_possible_moves(game, player)
+        options = {option: 0 for option in possibles}
+
+        winner = game.get_winner()
         if winner == self.ai_num and len(my_moves) == 1:
             return {last_move: 50}
         if winner == self.ai_num:
@@ -129,93 +91,51 @@ class AI:
             return {last_move: -10}
         if winner == self.other_ai_num:
             return {last_move: -5}
+        move = self.find_move_helper(game.cells, player)
+        if move:
+            return {move: 500}
         for option in options.keys():
             if player == self.ai_num:
-                result = self.think(self.other_ai_num, options, my_moves + str(option),
+                result = self.think(self.other_ai_num, my_moves + str(option),
                                     his_moves)
-                options[option] = sum(result.values())
+                options[option] += sum(result.values())
             else:
-                options[option] = sum(self.think(self.ai_num, options, my_moves,
+                options[option] += sum(self.think(self.ai_num, my_moves,
                                                   his_moves + str(
                                                       option)).values())
         return options
 
-    def analyze_board(self, mat):
-        board = mat[:]
-        good = 0
-        bad = 0
-        for row in board:
-            row = str(row)
-            if '0, 1, 1, 1' in row or '1, 1, 1, 0' in row:
-                good += 1
-            if '0, 2, 2, 2' in row or '2, 2, 2, 0' in row:
-                bad += 1
-        for row in np.transpose(board):
-            row = str(row)
-            if '0, 1, 1, 1' in row or '1, 1, 1, 0' in row:
-                good += 1
-            if '0, 2, 2, 2' in row or '2, 2, 2, 0' in row:
-                bad += 1
-        for diagonal in list(self.diags(board)):
-            diagonal = str(diagonal)
-            if '0, 1, 1, 1' in diagonal or '1, 1, 1, 0' in diagonal:
-                good += 1
-            if '0, 2, 2, 2' in diagonal or '2, 2, 2, 0' in diagonal:
-                bad += 1
-        return good, bad
-
-    def diags(self, mat):
-        width, height = len(mat[0]), len(mat)
-
-        def diag(sx, sy):
-            for x, y in zip(range(sx, height), range(sy, width)):
-                yield mat[x][y]
-
-        for sx in range(height):
-            yield list(diag(sx, 0))
-        for sy in range(1, width):
-            yield list(diag(0, sy))
-
-    def find_move_helper(self, col=None, turn=0):
-        if turn == 0:
-            lst = self.find_relevant_cells()
-            for item in lst:
-                row = item[0]
-                col = item[1]
-                self.cells[row][col] = self.ai_num
-                if self.get_winner() == self.ai_num:
-                    self.cells[row][col] = 0
-                    return col
-                self.cells[row][col] = 0
-            for item in lst:
-                row = item[0]
-                col = item[1]
-                self.cells[row][col] = self.other_ai_num
-                if self.get_winner() == self.other_ai_num:
-                    self.cells[row][col] = 0
-                    return col
-                self.cells[row][col] = 0
-            return lst[0][1]
-
+    def find_move_helper(self, cells, player):
+        lst = self.find_relevant_cells(cells)
+        ai_num = player
+        if player == 1:
+            other_ai_num = 2
         else:
-            for col in range(self.COLS_NUM):
-                if self.cells[self.ROWS_NUM - 1][col] == 0:
-                    for row in range(5, -1, -1):
-                        if self.cells[row][col] == 0:
-                            self.cells[row][col] = self.other_ai_num
-                            if self.get_winner() == self.other_ai_num:
-                                self.cells[row][col] = 0
-                                return False
-                            self.cells[row][col] = 0
-                            break
-            return True
+            other_ai_num = 1
+        for item in lst:
+            row = item[0]
+            col = item[1]
+            cells[row][col] = ai_num
+            if self.get_winner(cells) == ai_num:
+                cells[row][col] = None
+                return col
+            cells[row][col] = None
+        for item in lst:
+            row = item[0]
+            col = item[1]
+            cells[row][col] = other_ai_num
+            if self.get_winner(cells) == other_ai_num:
+                cells[row][col] = None
+                return col
+            cells[row][col] = None
+        return None
 
-    def get_winner(self):
+    def get_winner(self, cells):
         """go over a row:"""
         seq = ""
         for row in range(self.ROWS_NUM):
             for col in range(self.COLS_NUM):
-                seq += str(self.cells[row][col])
+                seq += str(cells[row][col])
             if "1111" in seq:
                 return 1
             if "2222" in seq:
@@ -225,14 +145,14 @@ class AI:
         "go over col"
         for col in range(self.COLS_NUM):
             for row in range(self.ROWS_NUM):
-                seq += str(self.cells[row][col])
+                seq += str(cells[row][col])
             if "1111" in seq:
                 return 1
             if "2222" in seq:
                 return 2
             seq = ""
         "go over aobliques"
-        matrix = np.asarray(self.cells)
+        matrix = np.asarray(cells)
         diags = [matrix[::-1, :].diagonal(i) for i in range(-5, 7)]
         diags.extend(matrix.diagonal(i) for i in range(6, -7, -1))
         lst = ([n.tolist() for n in diags])

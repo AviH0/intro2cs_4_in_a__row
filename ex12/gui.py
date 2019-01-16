@@ -86,7 +86,7 @@ class Gui:
             ai1 = AI(game, 1)
             ai2 = AI(game, 2)
             self.__bot_vs_bot(game, graphics, ai1, ai2)
-        if current == "pvc":
+        if current == "PvPC":
             ai1 = AI(game, 1)
             self.__play_ai_move(game, graphics, ai1, 1)
         else:
@@ -180,5 +180,4 @@ class Gui:
             self.__root.after(100, self.__start_menu)
         else:
             self.__root.quit()
-            self.__root.destroy()
             exit(0)
