@@ -14,6 +14,7 @@ class Gui:
     PVC = PATH + '/images/pvc.png'
     PVP_SELECTED = PATH + '/images/PvP-selected.png'
     PVPC_SELECTED = PATH + '/images/PvPC-selected.png'
+    PCVPC= PATH+ '/images/cvc.png'
 
     def __init__(self):
         self.__root = tk.Tk()
@@ -28,7 +29,7 @@ class Gui:
         self.__p_v_pc = tk.PhotoImage(file=self.PVC)
         self.__pvp_selected = tk.PhotoImage(file=self.PVP_SELECTED)
         self.__pvpc_selected = tk.PhotoImage(file=self.PVPC_SELECTED)
-
+        self.__pc_v_pc= tk.PhotoImage(file=self.PCVPC)
 
     def __welcome(self):
         start_frame = tk.Frame(self.__root)
@@ -54,6 +55,10 @@ class Gui:
         p_v_pc_button = tk.Button(options, image=self.__p_v_pc,
                                   command=lambda: self.__start_game(
                                       p_v_pc_button, mode='PvPC' ), relief='flat')
+        pc_v_pc_button = tk.Button(options, image=self.__pc_v_pc,
+                                  command=lambda: self.__start_game(
+                                      p_v_pc_button, mode='PCvPC'), relief='flat')
+        pc_v_pc_button.pack()
         p_v_p_button.pack()
         p_v_pc_button.pack()
         options.pack()
@@ -63,6 +68,8 @@ class Gui:
         current="pvp"
         if mode == 'PvP':
             button.config(image=self.__pvp_selected)
+        elif mode=="PCvPC":
+            current="pcvpc"
         else:
             current="pvc"
             button.config(image=self.__pvpc_selected)
@@ -74,13 +81,29 @@ class Gui:
         canvas = tk.Canvas(self.__root)
         graphics = Graphics(canvas)
         canvas.pack()
+        if current=="pcvpc":
+            ai1 = AI(game, 1)
+            ai2=AI(game,2)
+            while True:
+                if game.get_winner()!=None:
+                    break
+                move = ai1.find_legal_move()
+                game.make_move(move)
+                ai1.update_board(move, 1)
+                graphics.play_coin(move, 1)
 
+                move = ai2.find_legal_move()
+                game.make_move(move)
+                ai2.update_board(move, 2)
+                graphics.play_coin(move, 2)
         if current=="pvc":
             ai1= AI(game,1)
             move=ai1.find_legal_move()
             game.make_move(move)
             ai1.update_board(move,1)
             graphics.play_coin(move,1)
+        else:
+            ai1=None
         self.__root.bind('<Key>', lambda event: self.key_pressed(game, graphics, event,ai1))
 
     def key_pressed(self, game, graphics, event,ai=None):
