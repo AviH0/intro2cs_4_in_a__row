@@ -14,7 +14,6 @@ class Gui:
     PVC = PATH + '/images/pvc.png'
     PVP_SELECTED = PATH + '/images/PvP-selected.png'
     PVPC_SELECTED = PATH + '/images/PvPC-selected.png'
-    PCVP= PATH+ '/images/cvp.png'
 
     def __init__(self):
         self.__root = tk.Tk()
@@ -29,7 +28,7 @@ class Gui:
         self.__p_v_pc = tk.PhotoImage(file=self.PVC)
         self.__pvp_selected = tk.PhotoImage(file=self.PVP_SELECTED)
         self.__pvpc_selected = tk.PhotoImage(file=self.PVPC_SELECTED)
-        self.__pc_v_p=tk.PhotoImage(file=self.PCVP)
+
 
     def __welcome(self):
         start_frame = tk.Frame(self.__root)
@@ -55,10 +54,6 @@ class Gui:
         p_v_pc_button = tk.Button(options, image=self.__p_v_pc,
                                   command=lambda: self.__start_game(
                                       p_v_pc_button, mode='PvPC' ), relief='flat')
-        pc_v_p_button = tk.Button(options, image=self.__p_v_pc,
-                                  command=lambda: self.__start_game(
-                                      pc_v_p_button, mode='PCvP'), relief='flat')
-        pc_v_p_button.pack()
         p_v_p_button.pack()
         p_v_pc_button.pack()
         options.pack()
@@ -68,12 +63,10 @@ class Gui:
         current="pvp"
         if mode == 'PvP':
             button.config(image=self.__pvp_selected)
-        elif current=="PvPC":
+        else:
             current="pvc"
             button.config(image=self.__pvpc_selected)
-        elif current=="PCvP":
-            current = "cvp"
-            button.config(image=self.__pvpc_selected)
+
         slaves = self.__root.pack_slaves()
         for slave in slaves:
             slave.destroy()
@@ -81,22 +74,16 @@ class Gui:
         canvas = tk.Canvas(self.__root)
         graphics = Graphics(canvas)
         canvas.pack()
-        ai_turn=0
+
         if current=="pvc":
-            ai_turn=1
-            ai1= AI(game,ai_turn)
+            ai1= AI(game,1)
             move=ai1.find_legal_move()
             game.make_move(move)
-            ai1.update_board(move,ai_turn)
-            graphics.play_coin(move,ai_turn)
-        elif current=="cvp":
-            ai_turn = 2
-        else:
-            ai1=None
+            ai1.update_board(move,1)
+            graphics.play_coin(move,1)
+        self.__root.bind('<Key>', lambda event: self.key_pressed(game, graphics, event,ai1))
 
-        self.__root.bind('<Key>', lambda event: self.key_pressed(game, graphics, event,ai1,ai_turn))
-
-    def key_pressed(self, game, graphics, event,ai=None,ai_turn=None):
+    def key_pressed(self, game, graphics, event,ai=None):
         key = event.keysym
         if event.char.isnumeric():
             key = int(event.char) - 1
@@ -112,8 +99,8 @@ class Gui:
                         ai.update_board(key, player)
                         move = ai.find_legal_move()
                         game.make_move(move)
-                        ai.update_board(move, ai_turn)
-                        graphics.play_coin(move, ai_turn)
+                        ai.update_board(move, 1)
+                        graphics.play_coin(move, 1)
 
                     if game.get_winner():
                         "player current player won!"

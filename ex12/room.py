@@ -9,7 +9,7 @@ class Room:
     NUM_WALLS = 4
 
     # FILES:
-    PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
+    PATH = os.path.dirname(os.path.realpath(__file__))
     WALL_FILE = PATH + '/wall%s.obj'
     CEILING_FILE = PATH + '/ceiling.obj'
 

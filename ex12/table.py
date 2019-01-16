@@ -7,7 +7,7 @@ class Table:
     A class for displaying a 3D table.
     """
     # Files:
-    PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
+    PATH = os.path.dirname(os.path.realpath(__file__))
     TOP_FILE = PATH + '/table_top.obj'
     LEGS_FILE = PATH + '/table_legs.obj'
 
