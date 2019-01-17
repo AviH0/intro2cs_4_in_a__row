@@ -70,7 +70,8 @@ class Gui:
         options = tk.Frame(self.__root)
 
         p_v_p_button = tk.Button(options, image=self.__p_v_p,
-                                 command=lambda: self.__start_game(mode=self.PVP_MODE),
+                                 command=lambda: self.__start_game(
+                                     mode=self.PVP_MODE),
                                  relief=tk.FLAT)
         p_v_pc_button = tk.Button(options, image=self.__p_v_pc,
                                   command=lambda: self.__start_game(
