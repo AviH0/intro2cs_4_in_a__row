@@ -131,7 +131,6 @@ class Gui:
                     game.make_move(key)
                     self.__root.after(10, lambda: graphics.play_coin(key,
                                                                      player))
-                    self.__current_player = self.PC
 
                     winner = game.get_winner()
                     if winner:
