@@ -10,7 +10,7 @@ class Gui:
     # Files:
     PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
     START = os.path.join(PATH, 'start.png')
-    PVP = os.path.join(PATH, 'pvp.png')
+    PVP = os.path.join(PATH, 'PvP.png')
     PVC = os.path.join(PATH, 'pvc.png')
     PCVPC = os.path.join(PATH, 'cvc.png')
 
