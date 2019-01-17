@@ -10,11 +10,9 @@ class Gui:
     # Files:
     PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
     START = os.path.join(PATH, 'start.png')
-    PVP = os.path.join(PATH, '/pvp.png')
-    PVC = os.path.join(PATH, '/pvc.png')
-    PVP_SELECTED = os.path.join(PATH, '/PvP-selected.png')
-    PVPC_SELECTED = os.path.join(PATH, '/PvPC-selected.png')
-    PCVPC = os.path.join(PATH, '/cvc.png')
+    PVP = os.path.join(PATH, 'PvP.png')
+    PVC = os.path.join(PATH, 'pvc.png')
+    PCVPC = os.path.join(PATH, 'cvc.png')
 
     # Messages:
     WELCOME_MSG = 'Welcome to Connect Four!'
@@ -51,8 +49,6 @@ class Gui:
         self.__start_image = tk.PhotoImage(file=self.START)
         self.__p_v_p = tk.PhotoImage(file=self.PVP)
         self.__p_v_pc = tk.PhotoImage(file=self.PVC)
-        self.__pvp_selected = tk.PhotoImage(file=self.PVP_SELECTED)
-        self.__pvpc_selected = tk.PhotoImage(file=self.PVPC_SELECTED)
         self.__pc_v_pc = tk.PhotoImage(file=self.PCVPC)
 
     def __welcome(self):
@@ -74,7 +70,8 @@ class Gui:
         options = tk.Frame(self.__root)
 
         p_v_p_button = tk.Button(options, image=self.__p_v_p,
-                                 command=lambda: self.__start_game(mode=self.PVP_MODE),
+                                 command=lambda: self.__start_game(
+                                     mode=self.PVP_MODE),
                                  relief=tk.FLAT)
         p_v_pc_button = tk.Button(options, image=self.__p_v_pc,
                                   command=lambda: self.__start_game(
@@ -136,7 +133,6 @@ class Gui:
                     game.make_move(key)
                     self.__root.after(10, lambda: graphics.play_coin(key,
                                                                      player))
-                    self.__current_player = self.PC
 
                     winner = game.get_winner()
                     if winner:

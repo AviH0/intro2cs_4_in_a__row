@@ -54,7 +54,7 @@ class AI:
         game = Game()
         for i in range(6):
             for j in range(7):
-                game.cells[i][j]= self.game.get_player_at(i, j)
+                game.cells[i][j] = self.game.get_player_at(i, j)
         for i in range(max(len(my_moves), len(his_moves))):
             try:
                 if len(my_moves) > i:
