@@ -9,12 +9,12 @@ import os
 class Gui:
     # Files:
     PATH = dir_path = os.path.dirname(os.path.realpath(__file__))
-    START = PATH + '/images/start.png'
-    PVP = PATH + '/images/pvp.png'
-    PVC = PATH + '/images/pvc.png'
-    PVP_SELECTED = PATH + '/images/PvP-selected.png'
-    PVPC_SELECTED = PATH + '/images/PvPC-selected.png'
-    PCVPC = PATH + '/images/cvc.png'
+    START = os.path.join(PATH, 'start.png')
+    PVP = os.path.join(PATH, '/pvp.png')
+    PVC = os.path.join(PATH, '/pvc.png')
+    PVP_SELECTED = os.path.join(PATH, '/PvP-selected.png')
+    PVPC_SELECTED = os.path.join(PATH, '/PvPC-selected.png')
+    PCVPC = os.path.join(PATH, '/cvc.png')
 
     # Messages:
     WELCOME_MSG = 'Welcome to Connect Four!'
