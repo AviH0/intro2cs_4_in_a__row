@@ -136,11 +136,11 @@ class Gui:
 
                     winner = game.get_winner()
                     if winner:
-                        winning_lst=game.winning_cells
-                        print(winning_lst)
+                        winning_lst = game.winning_cells
 
-                        self.__root.after(10, lambda: self.__game_is_over(
-                            graphics, winner))
+
+                        self.__root.after(500, lambda: self.__game_is_over(
+                            graphics, winner, winning_lst))
 
                     elif ai:
                         self.__current_player = self.PC
@@ -178,16 +178,19 @@ class Gui:
             self.__game_is_over(graphics, None)
         winner = game.get_winner()
         if winner:
-            self.__root.after(10,
+            winning_list = game.winning_cells
+            self.__root.after(500,
                               lambda: self.__game_is_over(graphics,
-                                                          winner))
+                                                          winner,
+                                                          winning_list))
             return False
         return True
 
-    def __game_is_over(self, graphics, winner):
+    def __game_is_over(self, graphics, winner, winning_coords):
         self.__root.unbind('<Key>')
         message = self.AI_ERR_MSG
         if winner:
+            graphics.mark_victory(winning_coords, 'black')
             graphics.victory()
             graphics.display_message(self.GAME_OVER_MESSAGE, 'green')
             message = self.VICTORY_MSG.format(
