@@ -21,9 +21,15 @@ class AI:
                 self.cells[i].append(0)
 
     def find_legal_move(self, timeout=None):
-        # return self.find_move_helper()
+        if self.game.get_winner():
+            raise RuntimeError("No possible AI moves")
         options = self.get_possible_moves(self.game, self.ai_num)
+        if not options:
+            raise RuntimeError("No possible AI moves")
         options = self.think(self.ai_num)
+        move = self.find_move_helper(self.game.cells, self.ai_num)
+        if move:
+            return move
         result = max(options.keys(), key=lambda x: options[x])
         return result
 
@@ -91,9 +97,7 @@ class AI:
             return {last_move: -10}
         if winner == self.other_ai_num:
             return {last_move: -5}
-        move = self.find_move_helper(game.cells, player)
-        if move:
-            return {move: 500}
+
         for option in options.keys():
             if player == self.ai_num:
                 result = self.think(self.other_ai_num, my_moves + str(option),
