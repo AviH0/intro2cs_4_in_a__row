@@ -13,6 +13,7 @@ class Game:
                 self.cells[i].append(0)
 
     def is_tie(self):
+        "checks if all cells filled"
         for row in range(self.ROWS_NUM):
             for col in range(self.COLS_NUM):
                 if self.cells[row][col]==0:
@@ -20,6 +21,7 @@ class Game:
         return True
 
     def get_winning_cells(self,line,value):
+        "after there's a winner, update the winning cells"
         last=0
         if line=="row":
             for col in range(self.COLS_NUM):
@@ -39,6 +41,7 @@ class Game:
                 last=self.cells[row][value]
 
     def make_move(self, column):
+        "make move function- by col"
         if column >6 or column <0:
             raise ValueError("illegal move")
         for row in range(5,-1,-1):
@@ -48,6 +51,7 @@ class Game:
                 return
         raise ValueError("illegal move")
     def get_winner(self):
+        "runs over the cells and finds if there's a winner!"
         """go over a row:"""
         seq=""
         for row in range(self.ROWS_NUM):
@@ -91,12 +95,14 @@ class Game:
         return None
 
     def change_cur_player(self):
+        "change the player who is playing now"
         if self.current_player==1:
             self.current_player=2
         else:
             self.current_player=1
 
     def get_player_at(self, row, col):
+        "returns the player at a specific cell"
         if row>5 or row<0:
             raise ValueError("illegal move")
         if col >6 or col <0:
@@ -106,23 +112,14 @@ class Game:
         return self.cells[row][col]
 
     def get_current_player(self):
+        "returns the current playing player"
         return self.current_player
 
     def print_board(self):
+        "prints board"
         st=""
         for row in range(self.ROWS_NUM):
             for col in range(self.COLS_NUM):
                 st+= str(self.cells[row][col])
             print(st)
             st=""
-
-# game=Game()
-# while  True:
-#     game.print_board()
-#     print("player",game.get_current_player(),"this is ur turn!")
-#     x=input("enter col: ")
-#     game.make_move(int(x))
-#     if game.get_winner() is not None:
-#         print("player",game.get_winner()," won")
-#         game.print_board()
-#         break

@@ -21,6 +21,7 @@ class AI:
                 self.cells[i].append(0)
 
     def find_legal_move(self, timeout=None):
+        "finds a leagel move, and returns it"
         if self.game.get_winner():
             raise RuntimeError("No possible AI moves")
         options = self.get_possible_moves(self.game, self.ai_num)
@@ -34,12 +35,14 @@ class AI:
         return result
 
     def update_board(self, column, player):
+        "update self.cells"
         for row in range(5, -1, -1):
             if self.cells[row][column] == 0:
                 self.cells[row][column] = player
                 break
 
     def find_relevant_cells(self, cells):
+        "finds all possible slots for a move and returns a list of them"
         lst = []
         for col in range(self.COLS_NUM):
             if not cells[0][col]:
@@ -51,6 +54,7 @@ class AI:
         return lst
 
     def create_game(self, my_moves, his_moves):
+        "creates a copy of  game"
         game = Game()
         for i in range(6):
             for j in range(7):
@@ -66,6 +70,7 @@ class AI:
         return game
 
     def get_possible_moves(self, game, player):
+        ""
         lst = []
         move = self.find_move_helper(game.cells, player)
         if move:
@@ -175,12 +180,14 @@ class AI:
         return None
 
     def change_cur_player(self):
+        "changes the current player"
         if self.current_player == 1:
             self.current_player = 2
         else:
             self.current_player = 1
 
     def get_player_at(self, row, col):
+        "returns player at a specific cell"
         if row > 5 or row < 0:
             raise ValueError("illegal move")
         if col > 6 or col < 0:
@@ -190,9 +197,11 @@ class AI:
         return self.cells[row][col]
 
     def get_current_player(self):
+        "gets tje player who is playing now"
         return self.current_player
 
     def print_board(self):
+        "prints board"
         st = ""
         for row in range(self.ROWS_NUM):
             for col in range(self.COLS_NUM):
