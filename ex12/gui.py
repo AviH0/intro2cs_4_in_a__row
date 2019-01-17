@@ -84,6 +84,7 @@ class Gui:
                                    command=lambda: self.__start_game(
                                        mode=self.PCVPC_MODE),
                                    relief=tk.FLAT)
+
         pc_v_pc_button.pack()
         p_v_p_button.pack()
         p_v_pc_button.pack()
@@ -139,6 +140,8 @@ class Gui:
 
                     winner = game.get_winner()
                     if winner:
+                        winning_lst=game.winning_cells
+
                         self.__root.after(10, lambda: self.__game_is_over(
                             graphics, winner))
 

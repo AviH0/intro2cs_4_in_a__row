@@ -6,10 +6,37 @@ class Game:
         self.ROWS_NUM=6
         self.COLS_NUM=7
         self.cells=[]
+        self.winning_cells=[]
         for i in range(self.ROWS_NUM):
             self.cells.append([])
             for x in range(self.COLS_NUM):
                 self.cells[i].append(0)
+
+    def is_tie(self):
+        for row in range(self.ROWS_NUM):
+            for col in range(self.COLS_NUM):
+                if self.cells[row][col]==0:
+                    return False
+        return True
+
+    def get_winning_cells(self,line,value):
+        last=0
+        if line=="row":
+            for col in range(self.COLS_NUM):
+                if len(self.winning_cells)==4:
+                    break
+                if last != self.cells[value][col]:
+                    self.winning_cells=[]
+                self.winning_cells.append(self.cells[value][col])
+                last=self.cells[value][col]
+        elif line=="col":
+            for row in range(self.ROWS_NUM):
+                if len(self.winning_cells)==4:
+                    break
+                if last != self.cells[row][value]:
+                    self.winning_cells=[]
+                self.winning_cells.append(self.cells[row][value])
+                last=self.cells[row][value]
 
     def make_move(self, column):
         if column >6 or column <0:
@@ -27,18 +54,21 @@ class Game:
             for col in range(self.COLS_NUM):
                 seq+=str(self.cells[row][col])
             if "1111" in seq:
+                self.get_winning_cells("row",row)
                 return 1
             if "2222" in seq:
+                self.get_winning_cells("row", row)
                 return 2
             seq = ""
-
         "go over col"
         for col in range(self.COLS_NUM):
             for row in range(self.ROWS_NUM):
                 seq += str(self.cells[row][col])
             if "1111" in seq:
+                self.get_winning_cells("col", col)
                 return 1
             if "2222" in seq:
+                self.get_winning_cells("col", col)
                 return 2
             seq = ""
         "go over aobliques"
