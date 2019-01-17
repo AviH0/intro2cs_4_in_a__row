@@ -49,7 +49,8 @@ class Game:
                             except IndexError:
                                 break
                         else:
-                            self.winning_cells = [(j + k, i + k) for k in range(4)]
+                            self.winning_cells = [(j + k, i + k) for k in
+                                                  range(4)]
                             return
                         for k in range(1, 4):
                             try:
@@ -58,7 +59,8 @@ class Game:
                             except IndexError:
                                 break
                         else:
-                            self.winning_cells =  [(j + k, i - k) for k in range(4)]
+                            self.winning_cells = [(j + k, i - k) for k in
+                                                  range(4)]
                             return
 
     def make_move(self, column):
@@ -141,26 +143,3 @@ class Game:
                 st += str(self.cells[row][col])
             print(st)
             st = ""
-
-game=Game()
-while  True:
-    game.print_board()
-    # print("player",game.get_current_player(),"this is ur turn!")
-    # x=input("enter col: ")
-    game.make_move(0)
-    game.make_move(1)
-    game.make_move(1)
-    game.make_move(2)
-    game.make_move(2)
-    game.make_move(0)
-    game.make_move(2)
-    game.make_move(3)
-    game.make_move(3)
-    game.make_move(3)
-    game.make_move(3)
-
-    if game.get_winner() is not None:
-        print("player",game.get_winner()," won")
-        game.print_board()
-        print(game.winning_cells)
-        break
