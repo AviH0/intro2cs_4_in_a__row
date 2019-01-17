@@ -20,6 +20,7 @@ class Gui:
     AI_ERR_MSG = "AI Error!"
     VICTORY_MSG = 'Player {} Won! \n Do You Want To Play Again?'
     GAME_OVER_MESSAGE = 'Game Over!'
+    TIE="its a tie!"
 
     # Game modes:
     PVP_MODE = 'PVP'
@@ -52,6 +53,7 @@ class Gui:
         self.__pc_v_p = tk.PhotoImage(file=self.CVP)
 
     def __welcome(self):
+        "when game starts, create these:"
         start_frame = tk.Frame(self.__root)
 
         welcome_label = tk.Label(start_frame, text=self.WELCOME_MSG)
@@ -64,6 +66,7 @@ class Gui:
         start_frame.pack()
 
     def __start_menu(self):
+        "create mode-buttons and pack them"
         old_stuff = self.__root.pack_slaves()
         for thing in old_stuff:
             thing.destroy()
@@ -93,6 +96,7 @@ class Gui:
         options.pack()
 
     def __start_game(self, mode):
+        "agter a mode pressed, this function starts the relevant mode"
         game = Game()
         ai_turn = None
         slaves = self.__root.pack_slaves()
@@ -124,13 +128,18 @@ class Gui:
                                                         ai1, ai_turn))
 
     def __bot_vs_bot(self, game, graphics, ai1, ai2):
-
+        "bot vs bot game:"
         if self.__play_ai_move(game, graphics, ai1, ai1.ai_num):
             self.__root.after(1000,
                               lambda: self.__bot_vs_bot(game, graphics, ai2,
                                                         ai1))
 
+<<<<<<< HEAD
+    def key_pressed(self, game, graphics, event, ai=None,turn= None):
+        "when there is at least one human player:"
+=======
     def key_pressed(self, game, graphics, event, ai=None, turn=None):
+>>>>>>> origin/master
         key = event.keysym
         if event.char.isnumeric() and self.__current_player == self.HUMAN:
             key = int(event.char) - 1
@@ -148,9 +157,23 @@ class Gui:
                     if winner:
                         winning_lst = game.winning_cells
 
+<<<<<<< HEAD
+                        self.__root.after(10, lambda: self.__game_is_over(
+                            graphics, winner))
+                    if game.is_tie()==True:
+                        message = "WANT TO PLAY AGAIN?"
+                        play_again = tk.messagebox.askyesno(self.TIE, message)
+                        if play_again:
+                            graphics.quit()
+                            self.__root.after(100, self.__start_menu)
+                        else:
+                            self.__root.quit()
+                            exit(0)
+=======
                         self.__root.after(500, lambda: self.__game_is_over(
                             graphics, winner, winning_lst))
 
+>>>>>>> origin/master
                     elif ai:
                         self.__current_player = self.PC
                         ai.update_board(key, player)
@@ -177,6 +200,7 @@ class Gui:
             graphics.move_camera(zoom=1 / 1.1)
 
     def __play_ai_move(self, game, graphics, ai, player):
+        "do ai move"
         try:
             move = ai.find_legal_move()
             game.make_move(move)
@@ -196,7 +220,12 @@ class Gui:
             return False
         return True
 
+<<<<<<< HEAD
+    def __game_is_over(self, graphics, winner):
+        "if game over, show relevant msg and ask if player wants to play again"
+=======
     def __game_is_over(self, graphics, winner, winning_coords):
+>>>>>>> origin/master
         self.__root.unbind('<Key>')
         message = self.AI_ERR_MSG
         if winner:
