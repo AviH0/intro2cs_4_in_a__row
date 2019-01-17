@@ -27,7 +27,7 @@ class Game:
                     break
                 if last != self.cells[value][col]:
                     self.winning_cells=[]
-                self.winning_cells.append(self.cells[value][col])
+                self.winning_cells.append((value,col))
                 last=self.cells[value][col]
         elif line=="col":
             for row in range(self.ROWS_NUM):
@@ -35,7 +35,7 @@ class Game:
                     break
                 if last != self.cells[row][value]:
                     self.winning_cells=[]
-                self.winning_cells.append(self.cells[row][value])
+                self.winning_cells.append((row,value))
                 last=self.cells[row][value]
 
     def make_move(self, column):

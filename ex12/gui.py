@@ -137,6 +137,7 @@ class Gui:
                     winner = game.get_winner()
                     if winner:
                         winning_lst=game.winning_cells
+                        print(winning_lst)
 
                         self.__root.after(10, lambda: self.__game_is_over(
                             graphics, winner))
