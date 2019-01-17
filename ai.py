@@ -70,7 +70,8 @@ class AI:
         return game
 
     def get_possible_moves(self, game, player):
-        ""
+        """Get a list of current legal moves. if there is one obvious move,
+        return it"""
         lst = []
         move = self.find_move_helper(game.cells, player)
         if move:
@@ -81,6 +82,10 @@ class AI:
         return lst
 
     def think(self, player, my_moves="", his_moves=""):
+        """
+        Go Over all the possible moves in a depth of 4. count the victories
+        and return them.
+        """
         last_move = 1
         if my_moves:
             last_move = int(my_moves[-1])
@@ -115,6 +120,10 @@ class AI:
         return options
 
     def find_move_helper(self, cells, player):
+        """
+        If there is an obvious move (one play victory for either side), find
+        it.
+        """
         lst = self.find_relevant_cells(cells)
         ai_num = player
         if player == 1:

@@ -13,14 +13,14 @@ class Gui:
     PVP = os.path.join(PATH, 'PvP.png')
     PVC = os.path.join(PATH, 'pvc.png')
     PCVPC = os.path.join(PATH, 'cvc.png')
-    CVP=os.path.join(PATH, 'cvp.png')
+    CVP = os.path.join(PATH, 'cvp.png')
     # Messages:
     WELCOME_MSG = 'Welcome to Connect Four!'
     ILLEGAL_MOVE_MSG = '--Illegal Move!--'
     AI_ERR_MSG = "AI Error!"
     VICTORY_MSG = 'Player {} Won! \n Do You Want To Play Again?'
     GAME_OVER_MESSAGE = 'Game Over!'
-    TIE="its a tie!"
+    TIE = "its a tie!"
 
     # Game modes:
     PVP_MODE = 'PVP'
@@ -50,7 +50,7 @@ class Gui:
         self.__p_v_p = tk.PhotoImage(file=self.PVP)
         self.__p_v_pc = tk.PhotoImage(file=self.PVC)
         self.__pc_v_pc = tk.PhotoImage(file=self.PCVPC)
-        self.__pc_v_p=tk.PhotoImage(file=self.CVP)
+        self.__pc_v_p = tk.PhotoImage(file=self.CVP)
 
     def __welcome(self):
         "when game starts, create these:"
@@ -85,9 +85,9 @@ class Gui:
                                        mode=self.PCVPC_MODE),
                                    relief=tk.FLAT)
         pc_v_p_button = tk.Button(options, image=self.__pc_v_p,
-                                   command=lambda: self.__start_game(
-                                       mode=self.PCVP_MODE),
-                                   relief=tk.FLAT)
+                                  command=lambda: self.__start_game(
+                                      mode=self.PCVP_MODE),
+                                  relief=tk.FLAT)
 
         pc_v_pc_button.pack()
         p_v_p_button.pack()
@@ -98,7 +98,7 @@ class Gui:
     def __start_game(self, mode):
         "agter a mode pressed, this function starts the relevant mode"
         game = Game()
-        ai_turn=None
+        ai_turn = None
         slaves = self.__root.pack_slaves()
         for slave in slaves:
             slave.destroy()
@@ -112,11 +112,11 @@ class Gui:
             self.__bot_vs_bot(game, graphics, ai1, ai2)
             self.__current_player = self.PC
         elif mode == self.PVPC_MODE:
-            ai1=AI(game,2)
-            ai_turn=2
+            ai1 = AI(game, 2)
+            ai_turn = 2
             self.__current_player = self.HUMAN
-        elif mode==self.PCVP_MODE:
-            ai_turn=1
+        elif mode == self.PCVP_MODE:
+            ai_turn = 1
             ai1 = AI(game, 1)
             self.__play_ai_move(game, graphics, ai1, 1)
             self.__current_player = self.HUMAN
@@ -125,7 +125,7 @@ class Gui:
             self.__current_player = self.HUMAN
         self.__root.bind('<Key>',
                          lambda event: self.key_pressed(game, graphics, event,
-                                                        ai1,ai_turn))
+                                                        ai1, ai_turn))
 
     def __bot_vs_bot(self, game, graphics, ai1, ai2):
         "bot vs bot game:"
@@ -134,7 +134,7 @@ class Gui:
                               lambda: self.__bot_vs_bot(game, graphics, ai2,
                                                         ai1))
 
-    def key_pressed(self, game, graphics, event, ai=None,turn= None):
+    def key_pressed(self, game, graphics, event, ai=None, turn=None):
         "when there is at least one human player:"
         key = event.keysym
         if event.char.isnumeric() and self.__current_player == self.HUMAN:
@@ -151,12 +151,12 @@ class Gui:
 
                     winner = game.get_winner()
                     if winner:
-                        winning_lst=game.winning_cells
+                        winning_lst = game.winning_cells
                         print(winning_lst)
 
                         self.__root.after(10, lambda: self.__game_is_over(
                             graphics, winner))
-                    if game.is_tie()==True:
+                    if game.is_tie() == True:
                         message = "WANT TO PLAY AGAIN?"
                         play_again = tk.messagebox.askyesno(self.TIE, message)
                         if play_again:
@@ -171,7 +171,8 @@ class Gui:
                         self.__root.after(1000,
                                           lambda: self.__play_ai_move(game,
                                                                       graphics,
-                                                                      ai, turn))
+                                                                      ai,
+                                                                      turn))
 
                 except ValueError:
                     graphics.display_message(self.ILLEGAL_MOVE_MSG, 'red')
@@ -199,7 +200,7 @@ class Gui:
             if self.__mode == self.PVPC_MODE or self.__mode == self.PCVP_MODE:
                 self.__current_player = self.HUMAN
         except RuntimeError:
-            self.__game_is_over(graphics, None)
+            self.__game_is_over(graphics, None, [])
         winner = game.get_winner()
         if winner:
             self.__root.after(10,
